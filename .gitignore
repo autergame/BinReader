@@ -1,0 +1,7 @@
+.vs/
+*.exp
+*.lib
+Debug/
+BinReader/Debug/
+BinReader/DebugWR/
+BinReader/Release/
