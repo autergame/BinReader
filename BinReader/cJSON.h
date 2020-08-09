@@ -71,15 +71,16 @@ extern "C"
 
     typedef enum jnType
     {
-        jSInt8 = 0,
-        jUInt8 = 1,
-        jSInt16 = 2,
-        jUInt16 = 3,
-        jSInt32 = 4,
-        jUInt32 = 5,
-        jSInt64 = 6,
-        jUInt64 = 7,
-        jFloat32 = 8,
+        jNone = 0,
+        jSInt8 = 1,
+        jUInt8 = 2,
+        jSInt16 = 3,
+        jUInt16 = 4,
+        jSInt32 = 5,
+        jUInt32 = 6,
+        jSInt64 = 7,
+        jUInt64 = 8,
+        jFloat32 = 9
     } jnType;
 
     typedef struct cJSON
@@ -109,7 +110,6 @@ extern "C"
     size_t cJSON_GetArraySize(const cJSON* array);
     cJSON* cJSON_GetArrayItem(const cJSON* array, int index);
     cJSON* cJSON_GetObjectItem(const cJSON* const object, const char* const string);
-    cJSON* cJSON_GetObjectItemCaseSensitive(const cJSON* const object, const char* const string);
     uint8_t cJSON_HasObjectItem(const cJSON* object, const char* string);
     const char* cJSON_GetErrorPtr();
 
@@ -145,31 +145,6 @@ const char* cJSON_GetErrorPtr()
 {
     return (const char*)(global_error.json + global_error.position);
 }
-
-static int case_insensitive_strcmp(const unsigned char* string1, const unsigned char* string2)
-{
-    if ((string1 == NULL) || (string2 == NULL))
-    {
-        return 1;
-    }
-
-    if (string1 == string2)
-    {
-        return 0;
-    }
-
-    for (; tolower(*string1) == tolower(*string2); (void)string1++, string2++)
-    {
-        if (*string1 == '\0')
-        {
-            return 0;
-        }
-    }
-
-    return tolower(*string1) - tolower(*string2);
-}
-
-#define static_strlen(string_literal) (sizeof(string_literal) - sizeof(""))
 
 static unsigned char* cJSON_strdup(const unsigned char* string)
 {
@@ -409,6 +384,14 @@ static uint8_t print_number(const cJSON* const item, printbuffer* const output_b
         else
             length = sprintf((char*)number_buffer, "%.9g", d);
 
+        uint8_t havepoint = 0;
+        for (i = 0; i < ((size_t)length); i++)
+            if (number_buffer[i] == '.')
+                havepoint = 1;
+
+        if (havepoint == 0)
+            length = sprintf((char*)number_buffer, "%.9g.0", d);
+
         if ((length < 0) || (length > (int)(sizeof(number_buffer) - 1)))
             return 0;
 
@@ -417,14 +400,7 @@ static uint8_t print_number(const cJSON* const item, printbuffer* const output_b
             return 0;
 
         for (i = 0; i < ((size_t)length); i++)
-        {
-            if (number_buffer[i] == '.')
-            {
-                output_pointer[i] = '.';
-                continue;
-            }
             output_pointer[i] = number_buffer[i];
-        }
     }
     else
     {
@@ -1634,7 +1610,7 @@ cJSON* cJSON_GetArrayItem(const cJSON* array, int index)
     return get_array_item(array, (size_t)index);
 }
 
-static cJSON* get_object_item(const cJSON* const object, const char* const name, const uint8_t case_sensitive)
+static cJSON* cJSON_GetObjectItem(const cJSON* const object, const char* const name)
 {
     cJSON* current_element = NULL;
 
@@ -1644,19 +1620,9 @@ static cJSON* get_object_item(const cJSON* const object, const char* const name,
     }
 
     current_element = object->child;
-    if (case_sensitive)
+    while ((current_element != NULL) && (current_element->string != NULL) && strcmp(name, current_element->string) != 0)
     {
-        while ((current_element != NULL) && (current_element->string != NULL) && (strcmp(name, current_element->string) != 0))
-        {
-            current_element = current_element->next;
-        }
-    }
-    else
-    {
-        while ((current_element != NULL) && (case_insensitive_strcmp((const unsigned char*)name, (const unsigned char*)(current_element->string)) != 0))
-        {
-            current_element = current_element->next;
-        }
+        current_element = current_element->next;
     }
 
     if ((current_element == NULL) || (current_element->string == NULL)) {
@@ -1664,16 +1630,6 @@ static cJSON* get_object_item(const cJSON* const object, const char* const name,
     }
 
     return current_element;
-}
-
-cJSON* cJSON_GetObjectItem(const cJSON* const object, const char* const string)
-{
-    return get_object_item(object, string, 0);
-}
-
-cJSON* cJSON_GetObjectItemCaseSensitive(const cJSON* const object, const char* const string)
-{
-    return get_object_item(object, string, 1);
 }
 
 uint8_t cJSON_HasObjectItem(const cJSON* object, const char* string)
