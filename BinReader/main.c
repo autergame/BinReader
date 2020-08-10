@@ -86,6 +86,20 @@ void memfread(void* buf, size_t bytes, char** membuf)
     *membuf += bytes;
 }
 
+typedef struct charv
+{
+    char* data;
+    size_t size;
+} charv;
+
+void memfwrite(void* buf, size_t bytes, charv* membuf)
+{
+    membuf->size += bytes;
+    char* block = (char*)realloc(membuf->data, membuf->size);
+    memcpy(block, &buf, bytes);
+    membuf->data = block;
+}
+
 typedef enum Type
 {
     NONE = 0, BOOL = 1, 
@@ -679,7 +693,7 @@ uint32_t getsize(BinField* value)
         case STRUCT:
         case CONTAINER:
         {
-            size = 9;
+            size = 1 + 4 + 4;
             ContainerOrStruct* cs = (ContainerOrStruct*)value->data;
             for (uint32_t i = 0; i < cs->itemsize; i++)
                 size += getsize(cs->items[i]);
@@ -696,9 +710,9 @@ uint32_t getsize(BinField* value)
             }
             else
             {
-                size = 10;
+                size = 4 + 4 + 2;
                 for (uint16_t i = 0; i < pe->itemsize; i++)
-                    size += getsize(pe->items[i]->value) + 5;
+                    size += getsize(pe->items[i]->value) + 4 + 1;
             }
             break;
         }
@@ -707,7 +721,7 @@ uint32_t getsize(BinField* value)
             break;
         case MAP:
         {
-            size = 10;
+            size = 1 + 1 + 4 + 4;
             Map* map = (Map*)value->data;
             for (uint32_t i = 0; i < map->itemsize; i++)
                 size += getsize(map->items[i]->key) + getsize(map->items[i]->value);
@@ -715,6 +729,11 @@ uint32_t getsize(BinField* value)
         }
     }
     return size;
+}
+
+void writevaluebybin(BinField* value, char** str)
+{
+
 }
 
 char* fname(char* path)
@@ -879,6 +898,7 @@ int main(int argc, char** argv)
             pairtmp->value = entrye;
             entriesMap->items[i] = pairtmp;
         }
+
         printf("finised reading file.\n");
         printf("creating json file.\n");
         cJSON* entriesarray = cJSON_CreateObject();
@@ -976,6 +996,29 @@ int main(int argc, char** argv)
             pairtmp->value = entryee;
             entriesMap->items[i] = pairtmp;
         }
+
+        charv* str = (charv*)calloc(1, sizeof(charv));
+        for (uint32_t i = 0; i < entriesMap->itemsize; i++)
+        {
+            PointerOrEmbed* pe = (PointerOrEmbed*)entriesMap->items[i]->value->data;
+
+            uint32_t entryLength = getsize(entriesMap->items[i]->value);
+            uint32_t entryKeyHash = *(uint32_t*)entriesMap->items[i]->key->data;
+            uint16_t fieldcount = pe->itemsize;
+
+            memfwrite(entryLength, 4, str);
+            memfwrite(entryKeyHash, 4, str);
+            memfwrite(fieldcount, 2, str);
+
+            for (uint16_t i = 0; i < fieldcount; i++)
+            {
+                uint32_t name = pe->items[i]->key;
+                uint8_t type = pe->items[i]->value->typebin;
+
+                writevaluebybin(pe->items[i]->value, &str);
+            }
+        }
+
         int ko = 0;
     }
     return 0;
