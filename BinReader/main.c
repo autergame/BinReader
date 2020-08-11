@@ -72,10 +72,11 @@ void addhash(HashTable* map, char* filename)
     fread(fp, fsize, 1, file);
     fp[fsize] = '\0';
     fclose(file);
+    char* hashend;
     char* hashline = strtok(fp, "\n");
     while (hashline != NULL) {   
-        uint32_t key = strtoul(hashline, NULL, 16);
-        insertHashTable(map, key, hashline+9);
+        uint32_t key = strtoul(hashline, &hashend, 16);
+        insertHashTable(map, key, hashend+1);
         hashline = strtok(NULL, "\n");
     }
 }
@@ -89,15 +90,17 @@ void memfread(void* buf, size_t bytes, char** membuf)
 typedef struct charv
 {
     char* data;
-    size_t size;
+    size_t lenght;
 } charv;
 
-void memfwrite(void* buf, size_t bytes, charv* membuf)
+void memfwrite(char* buf, size_t bytes, charv* membuf)
 {
-    membuf->size += bytes;
-    char* block = (char*)realloc(membuf->data, membuf->size);
-    memcpy(block, &buf, bytes);
-    membuf->data = block;
+    char* oblock = (char*)realloc(membuf->data, membuf->lenght + bytes);
+    oblock += membuf->lenght;
+    memcpy(oblock, buf, bytes);
+    membuf->data = oblock;
+    membuf->data -= membuf->lenght;
+    membuf->lenght += bytes;
 }
 
 typedef enum Type
@@ -702,15 +705,11 @@ uint32_t getsize(BinField* value)
         case POINTER:
         case EMBEDDED:
         {
+            size = 4;
             PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
-            if (pe->name == 0)
+            if (pe->name != 0)
             {
-                size = 4;
-                break;
-            }
-            else
-            {
-                size = 4 + 4 + 2;
+                size += 4 + 2;
                 for (uint16_t i = 0; i < pe->itemsize; i++)
                     size += getsize(pe->items[i]->value) + 4 + 1;
             }
@@ -731,7 +730,7 @@ uint32_t getsize(BinField* value)
     return size;
 }
 
-void writevaluebybin(BinField* value, char** str)
+void writevaluebybin(BinField* value, charv* str)
 {
 
 }
@@ -951,7 +950,7 @@ int main(int argc, char** argv)
         size_t i = 0, k = 0;
         cJSON* root = cJSON_ParseWithLength(fp, fsize);
         char* Signature = (char*)cJSON_GetObjectItem(root, "Signature")->value;
-        uint32_t Version = *(uint32_t*)cJSON_GetObjectItem(root, "Version")->value;
+        uint32_t Version = *(uint32_t*)cJSON_GetObjectItem(root, "Version")->value;     
 
         cJSON* linked = cJSON_GetObjectItem(root, "Linked");
         size_t likedsize = cJSON_GetArraySize(linked);
@@ -997,7 +996,33 @@ int main(int argc, char** argv)
             entriesMap->items[i] = pairtmp;
         }
 
+        char* sig1 = "PROP", *sig2 = "PTCH";
         charv* str = (charv*)calloc(1, sizeof(charv));
+        if (strcmp(Signature, sig2) == 0)
+        {
+            uint32_t unk1 = 1, unk2 = 0;
+            memfwrite(sig2, 4, str);
+            memfwrite(&unk1, 4, str);
+            memfwrite(&unk2, 4, str);
+        }
+        memfwrite(sig1, 4, str);
+        memfwrite(&Version, 4, str);
+
+        if (Version >= 2)
+        {
+            memfwrite(&likedsize, 4, str);
+            for (int i = 0; i < likedsize; i++)
+            {
+                uint16_t len = strlen(LinkedList[i]);
+                memfwrite(&len, 2, str);
+                memfwrite(LinkedList[i], len, str);
+            }
+        }
+
+        memfwrite(&entriesMap->itemsize, 4, str);
+        for (size_t i = 0; i < entriesMap->itemsize; i++)
+            memfwrite(&((PointerOrEmbed*)entriesMap->items[i]->value->data)->name, 4, str);
+
         for (uint32_t i = 0; i < entriesMap->itemsize; i++)
         {
             PointerOrEmbed* pe = (PointerOrEmbed*)entriesMap->items[i]->value->data;
@@ -1006,16 +1031,19 @@ int main(int argc, char** argv)
             uint32_t entryKeyHash = *(uint32_t*)entriesMap->items[i]->key->data;
             uint16_t fieldcount = pe->itemsize;
 
-            memfwrite(entryLength, 4, str);
-            memfwrite(entryKeyHash, 4, str);
-            memfwrite(fieldcount, 2, str);
+            memfwrite(&entryLength, 4, str);
+            memfwrite(&entryKeyHash, 4, str);
+            memfwrite(&fieldcount, 2, str);
 
             for (uint16_t i = 0; i < fieldcount; i++)
             {
                 uint32_t name = pe->items[i]->key;
                 uint8_t type = pe->items[i]->value->typebin;
 
-                writevaluebybin(pe->items[i]->value, &str);
+                memfwrite(&name, 4, str);
+                memfwrite(&type, 1, str);
+
+                writevaluebybin(pe->items[i]->value, str);
             }
         }
 
