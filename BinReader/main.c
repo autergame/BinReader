@@ -433,8 +433,12 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
         }
         case HASH:
         case LINK:
-            result->data = hashfromstring((char*)jdata->value);
+        {
+            uint32_t* data = (uint32_t*)calloc(1, 4);
+            *data = hashfromstring((char*)jdata->value);
+            result->data = data;
             break;
+        }
         case CONTAINER:
         case STRUCT:
         {
@@ -459,7 +463,7 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
                 result->data = tmppe;
                 break;
             }
-            tmppe->itemsize = cJSON_GetArraySize(pe);
+            tmppe->itemsize = (uint16_t)cJSON_GetArraySize(pe);
             tmppe->items = (Field**)calloc(tmppe->itemsize, sizeof(Field*));
             for (i = 0, obj = pe->child; obj != NULL; obj = obj->next, i++)
             {
@@ -717,7 +721,7 @@ uint32_t getsize(BinField* value)
         {
             size = 4;
             PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
-            if (pe->name != NULL)
+            if (pe->name != 0)
             { 
                 size += 4 + 2;
                 for (uint16_t i = 0; i < pe->itemsize; i++)
@@ -779,22 +783,22 @@ void writevaluebybin(BinField* value, charv* str)
         case STRING:
         {
             char* string = (char*)value->data;
-            uint16_t size = strlen(string);
-            memfwrite(&size, 2, str);
+            uint16_t size = (uint16_t)strlen(string);
+            memfwrite((char*)&size, 2, str);
             memfwrite(string, size, str);
             break;
         }
         case STRUCT:
         case CONTAINER:
         {
+            uint32_t size = 4;
             ContainerOrStruct* cs = (ContainerOrStruct*)value->data;
             uint8_t type = typetouint(cs->valueType);
             memfwrite(&type, 1, str);
-            uint32_t size = 4;
             for (uint16_t k = 0; k < cs->itemsize; k++)
                 size += getsize(cs->items[k]);
-            memfwrite(&size, 4, str);
-            memfwrite(&cs->itemsize, 4, str);
+            memfwrite((char*)&size, 4, str);
+            memfwrite((char*)&cs->itemsize, 4, str);
             for (uint32_t i = 0; i < cs->itemsize; i++)
                 writevaluebybin(cs->items[i], str);
             break;
@@ -802,20 +806,20 @@ void writevaluebybin(BinField* value, charv* str)
         case POINTER:
         case EMBEDDED:
         {
+            uint32_t size = 2;
             PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
-            memfwrite(&pe->name, 4, str);
+            memfwrite((char*)&pe->name, 4, str);
             if (pe->name == 0)
                 break;
-            uint32_t size = 2;
             for (uint16_t k = 0; k < pe->itemsize; k++)
                 size += getsize(pe->items[k]->value) + 4 + 1;
-            memfwrite(&size, 4, str);
-            memfwrite(&pe->itemsize, 2, str);
+            memfwrite((char*)&size, 4, str);
+            memfwrite((char*)&pe->itemsize, 2, str);
             for (uint16_t i = 0; i < pe->itemsize; i++)
             {
                 uint8_t type = typetouint(pe->items[i]->value->typebin);
-                memfwrite(&pe->items[i]->key, 4, str);
-                memfwrite(&type, 1, str);
+                memfwrite((char*)&pe->items[i]->key, 4, str);
+                memfwrite((char*)&type, 1, str);
                 writevaluebybin(pe->items[i]->value, str);
             }
             break;
@@ -840,7 +844,21 @@ void writevaluebybin(BinField* value, charv* str)
         }
         case MAP:
         {
+            uint32_t size = 4;
             Map* map = (Map*)value->data;
+            uint8_t typek = typetouint(map->keyType);
+            uint8_t typev = typetouint(map->valueType);
+            memfwrite((char*)&typek, 1, str);
+            memfwrite((char*)&typev, 1, str);
+            for (uint16_t k = 0; k < map->itemsize; k++)
+                size += getsize(map->items[k]->key) + getsize(map->items[k]->value);
+            memfwrite((char*)&size, 4, str);
+            memfwrite((char*)&map->itemsize, 4, str);
+            for (uint32_t i = 0; i < map->itemsize; i++)
+            {
+                writevaluebybin(map->items[i]->key, str);
+                writevaluebybin(map->items[i]->value, str);
+            }
             break;
         }
     }
@@ -1032,7 +1050,8 @@ int main(int argc, char** argv)
         printf("finised json file.\n");
         printf("writing to file.\n");
         file = fopen(name, "wb");
-        fprintf(file, cJSON_Print(root, 1));
+        char* out =  cJSON_Print(root, 1);
+        fwrite(out, strlen(out), 1, file);
         printf("finised writing to file.\n");
         fclose(file);
     }
@@ -1082,7 +1101,7 @@ int main(int argc, char** argv)
             uint32_t entryKeyHash = hashfromstring(obj->string);
             size_t fieldcount = cJSON_GetArraySize(obj->child);
             PointerOrEmbed* entry = (PointerOrEmbed*)calloc(1, sizeof(PointerOrEmbed));
-            entry->itemsize = fieldcount;
+            entry->itemsize = (uint16_t)fieldcount;
             entry->name = hashfromstring(obj->child->string);
             entry->items = (Field**)calloc(fieldcount, sizeof(Field*));
             for (k = 0, obje = obj->child->child; obje != NULL; obje = obje->next, k++)
@@ -1107,32 +1126,34 @@ int main(int argc, char** argv)
             entriesMap->items[i] = pairtmp;
         }
 
+        printf("finised reading file.\n");
+        printf("creating bin file.\n");
         char* sig1 = "PROP", *sig2 = "PTCH";
         charv* str = (charv*)calloc(1, sizeof(charv));
         if (strcmp(Signature, sig2) == 0)
         {
             uint32_t unk1 = 1, unk2 = 0;
             memfwrite(sig2, 4, str);
-            memfwrite(&unk1, 4, str);
-            memfwrite(&unk2, 4, str);
+            memfwrite((char*)&unk1, 4, str);
+            memfwrite((char*)&unk2, 4, str);
         }
         memfwrite(sig1, 4, str);
-        memfwrite(&Version, 4, str);
+        memfwrite((char*)&Version, 4, str);
 
         if (Version >= 2)
         {
-            memfwrite(&likedsize, 4, str);
-            for (int i = 0; i < likedsize; i++)
+            memfwrite((char*)&likedsize, 4, str);
+            for (i = 0; i < likedsize; i++)
             {
-                uint16_t len = strlen(LinkedList[i]);
-                memfwrite(&len, 2, str);
+                uint16_t len = (uint16_t)strlen(LinkedList[i]);
+                memfwrite((char*)&len, 2, str);
                 memfwrite(LinkedList[i], len, str);
             }
         }
 
-        memfwrite(&entriesMap->itemsize, 4, str);
-        for (size_t i = 0; i < entriesMap->itemsize; i++)
-            memfwrite(&((PointerOrEmbed*)entriesMap->items[i]->value->data)->name, 4, str);
+        memfwrite((char*)&entriesMap->itemsize, 4, str);
+        for (uint32_t i = 0; i < entriesMap->itemsize; i++)
+            memfwrite((char*)&((PointerOrEmbed*)entriesMap->items[i]->value->data)->name, 4, str);
 
         for (uint32_t i = 0; i < entriesMap->itemsize; i++)
         {
@@ -1143,23 +1164,28 @@ int main(int argc, char** argv)
                 entryLength += getsize(pe->items[k]->value) + 4 + 1;
             entryLength += 4 + 2;
 
-            memfwrite(&entryLength, 4, str);
-            memfwrite(&entryKeyHash, 4, str);
-            memfwrite(&pe->itemsize, 2, str);
+            memfwrite((char*)&entryLength, 4, str);
+            memfwrite((char*)&entryKeyHash, 4, str);
+            memfwrite((char*)&pe->itemsize, 2, str);
 
             for (uint16_t k = 0; k < pe->itemsize; k++)
             {
                 uint32_t name = pe->items[k]->key;
                 uint8_t type = typetouint(pe->items[k]->value->typebin);
 
-                memfwrite(&name, 4, str);
-                memfwrite(&type, 1, str);
+                memfwrite((char*)&name, 4, str);
+                memfwrite((char*)&type, 1, str);
 
                 writevaluebybin(pe->items[k]->value, str);
             }
         }
 
-        int ko = 0;
+        printf("finised json file.\n");
+        printf("writing to file.\n");
+        FILE* filee = fopen(name, "wb");
+        fwrite(str->data, str->lenght, 1, filee);
+        printf("finised writing to file.\n");
+        fclose(file);
     }
     return 0;
 }

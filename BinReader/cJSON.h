@@ -1008,7 +1008,7 @@ static uint8_t parse_value(cJSON* const item, parse_buffer* const input_buffer)
     {
         return 0;    
     }
-
+    uint32_t* number = (uint32_t*)calloc(1, 4);
     if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
     {
         item->type = jnull;
@@ -1017,14 +1017,17 @@ static uint8_t parse_value(cJSON* const item, parse_buffer* const input_buffer)
     }
     if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
     {
+        *number = 0;
         item->type = jfalse;
+        item->value = number;
         input_buffer->offset += 5;
         return 1;
     }
     if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "true", 4) == 0))
     {
+        *number = 1;
         item->type = jtrue;
-        item->value = (void*)1;
+        item->value = number;
         input_buffer->offset += 4;
         return 1;
     }
