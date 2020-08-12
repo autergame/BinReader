@@ -135,6 +135,16 @@ Type uinttotype(uint8_t type)
     return (Type)type;
 }
 
+uint8_t typetouint(Type type)
+{
+    uint8_t raw = type;
+    if (raw >= 18) {
+        raw -= 18;
+        raw |= 0x80;
+    }
+    return raw;
+}
+
 Type findtypebystring(char* sval)
 {
     Type result = NONE;
@@ -707,11 +717,11 @@ uint32_t getsize(BinField* value)
         {
             size = 4;
             PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
-            if (pe->name != 0)
-            {
+            if (pe->name != NULL)
+            { 
                 size += 4 + 2;
                 for (uint16_t i = 0; i < pe->itemsize; i++)
-                    size += getsize(pe->items[i]->value) + 4 + 1;
+                  size += getsize(pe->items[i]->value) + 4 + 1;
             }
             break;
         }
@@ -732,7 +742,108 @@ uint32_t getsize(BinField* value)
 
 void writevaluebybin(BinField* value, charv* str)
 {
-
+    switch (value->typebin)
+    {
+        case FLAG:
+        case BOOL:
+        case SInt8:
+        case UInt8:
+            memfwrite(value->data, 1, str);
+            break;
+        case SInt16:
+        case UInt16:
+            memfwrite(value->data, 2, str);
+            break;
+        case LINK:
+        case HASH:
+        case RGBA:
+        case SInt32:
+        case UInt32:
+        case Float32:
+            memfwrite(value->data, 4, str);
+            break;
+        case VEC2:
+        case SInt64:
+        case UInt64:
+            memfwrite(value->data, 8, str);
+            break;
+        case VEC3:
+            memfwrite(value->data, 12, str);
+            break;
+        case VEC4:
+            memfwrite(value->data, 16, str);
+            break;
+        case MTX44:
+            memfwrite(value->data, 64, str);
+            break;
+        case STRING:
+        {
+            char* string = (char*)value->data;
+            uint16_t size = strlen(string);
+            memfwrite(&size, 2, str);
+            memfwrite(string, size, str);
+            break;
+        }
+        case STRUCT:
+        case CONTAINER:
+        {
+            ContainerOrStruct* cs = (ContainerOrStruct*)value->data;
+            uint8_t type = typetouint(cs->valueType);
+            memfwrite(&type, 1, str);
+            uint32_t size = 4;
+            for (uint16_t k = 0; k < cs->itemsize; k++)
+                size += getsize(cs->items[k]);
+            memfwrite(&size, 4, str);
+            memfwrite(&cs->itemsize, 4, str);
+            for (uint32_t i = 0; i < cs->itemsize; i++)
+                writevaluebybin(cs->items[i], str);
+            break;
+        }
+        case POINTER:
+        case EMBEDDED:
+        {
+            PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
+            memfwrite(&pe->name, 4, str);
+            if (pe->name == 0)
+                break;
+            uint32_t size = 2;
+            for (uint16_t k = 0; k < pe->itemsize; k++)
+                size += getsize(pe->items[k]->value) + 4 + 1;
+            memfwrite(&size, 4, str);
+            memfwrite(&pe->itemsize, 2, str);
+            for (uint16_t i = 0; i < pe->itemsize; i++)
+            {
+                uint8_t type = typetouint(pe->items[i]->value->typebin);
+                memfwrite(&pe->items[i]->key, 4, str);
+                memfwrite(&type, 1, str);
+                writevaluebybin(pe->items[i]->value, str);
+            }
+            break;
+        }
+        case OPTION:
+        {
+            uint8_t count = 1;
+            Option* op = (Option*)value->data;
+            uint8_t type = typetouint(op->valueType);
+            memfwrite(&type, 1, str);
+            if (op->item != NULL)
+            {
+                memfwrite(&count, 1, str);
+                writevaluebybin(op->item, str);
+            }
+            else
+            {
+                count = 0;
+                memfwrite(&count, 1, str);
+            }
+            break;
+        }
+        case MAP:
+        {
+            Map* map = (Map*)value->data;
+            break;
+        }
+    }
 }
 
 char* fname(char* path)
@@ -1025,25 +1136,26 @@ int main(int argc, char** argv)
 
         for (uint32_t i = 0; i < entriesMap->itemsize; i++)
         {
+            uint32_t entryLength = 0;
             PointerOrEmbed* pe = (PointerOrEmbed*)entriesMap->items[i]->value->data;
-
-            uint32_t entryLength = getsize(entriesMap->items[i]->value);
             uint32_t entryKeyHash = *(uint32_t*)entriesMap->items[i]->key->data;
-            uint16_t fieldcount = pe->itemsize;
+            for (uint16_t k = 0; k < pe->itemsize; k++)
+                entryLength += getsize(pe->items[k]->value) + 4 + 1;
+            entryLength += 4 + 2;
 
             memfwrite(&entryLength, 4, str);
             memfwrite(&entryKeyHash, 4, str);
-            memfwrite(&fieldcount, 2, str);
+            memfwrite(&pe->itemsize, 2, str);
 
-            for (uint16_t i = 0; i < fieldcount; i++)
+            for (uint16_t k = 0; k < pe->itemsize; k++)
             {
-                uint32_t name = pe->items[i]->key;
-                uint8_t type = pe->items[i]->value->typebin;
+                uint32_t name = pe->items[k]->key;
+                uint8_t type = typetouint(pe->items[k]->value->typebin);
 
                 memfwrite(&name, 4, str);
                 memfwrite(&type, 1, str);
 
-                writevaluebybin(pe->items[i]->value, str);
+                writevaluebybin(pe->items[k]->value, str);
             }
         }
 
