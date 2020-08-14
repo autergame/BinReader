@@ -62,9 +62,15 @@ char* lookupHashTable(HashTable* t, uint32_t key)
     return NULL;
 }
 
-void addhash(HashTable* map, char* filename)
+int addhash(HashTable* map, char* filename)
 {
     FILE* file = fopen(filename, "rb");
+    if (!file)
+    {
+        printf("ERROR: cannot read file \"%s\".", filename);
+        scanf("press enter to exit.");
+        return 1;
+    }
     fseek(file, 0, SEEK_END);
     long fsize = ftell(file);
     fseek(file, 0, SEEK_SET);
@@ -79,6 +85,7 @@ void addhash(HashTable* map, char* filename)
         insertHashTable(map, key, hashend+1);
         hashline = strtok(NULL, "\n");
     }
+    return 0;
 }
 
 void memfread(void* buf, size_t bytes, char** membuf)
@@ -316,9 +323,9 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
         {
             cJSON* jsonarr = cJSON_CreateArray();
             ContainerOrStruct* cs = (ContainerOrStruct*)value->data;
-            if(cs->valueType != FLAG && cs->valueType >= 18 && cs->valueType <= 24) 
+            if (cs->valueType >= 18 && cs->valueType <= 21 || cs->valueType == MAP)
                 jsonarr = cJSON_CreateObject();
-            cJSON_AddItemToObject(json, "valuetype", cJSON_CreateString(Type_strings[cs->valueType]));
+            cJSON_AddItemToObject(json, "containertype", cJSON_CreateString(Type_strings[cs->valueType]));
             cJSON_AddItemToObject(json, strdata, jsonarr);
             for (size_t i = 0; i < cs->itemsize; i++)
                 getvaluefromtype(cs->items[i], hasht, jsonarr, "data");
@@ -327,9 +334,16 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
         case POINTER:
         case EMBEDDED:
         {
+            cJSON* jsonmp = cJSON_CreateObject();
             cJSON* jsonarr = cJSON_CreateArray();
             PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
-            cJSON_AddItemToObject(json, hashtostr(hasht, pe->name), jsonarr);
+            if (strcmp(strdata, "keydata") == 0 || strcmp(strdata, "valuedata") == 0)
+            {
+                cJSON_AddItemToObject(json, strdata, jsonmp);
+                cJSON_AddItemToObject(jsonmp, hashtostr(hasht, pe->name), jsonarr);
+            }
+            else
+                cJSON_AddItemToObject(json, hashtostr(hasht, pe->name), jsonarr);
             for (size_t i = 0; i < pe->itemsize; i++)
             {
                 cJSON* jsonobj = cJSON_CreateObject();
@@ -343,7 +357,7 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
         case OPTION:
         {
             Option* op = (Option*)value->data;
-            cJSON_AddItemToObject(json, "valuetype", cJSON_CreateString(Type_strings[op->valueType]));
+            cJSON_AddItemToObject(json, "optiontype", cJSON_CreateString(Type_strings[op->valueType]));
             getvaluefromtype(op->item, hasht, json, "data");
             break;
         }
@@ -444,7 +458,7 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
         {
             cJSON* cs = cJSON_GetObjectItem(json, "data");
             ContainerOrStruct* tmpcs = (ContainerOrStruct*)calloc(1, sizeof(ContainerOrStruct));
-            tmpcs->valueType = findtypebystring((char*)cJSON_GetObjectItem(json, "valuetype")->value);
+            tmpcs->valueType = findtypebystring((char*)cJSON_GetObjectItem(json, "containertype")->value);
             tmpcs->itemsize = cJSON_GetArraySize(cs);
             tmpcs->items = (BinField**)calloc(tmpcs->itemsize, sizeof(BinField*));
             for (i = 0, obj = cs->child; obj != NULL; obj = obj->next, i++)
@@ -478,13 +492,15 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
         case OPTION:
         {
             Option* tmpo = (Option*)calloc(1, sizeof(Option));
-            tmpo->valueType = findtypebystring((char*)cJSON_GetObjectItem(json, "valuetype")->value);
+            tmpo->valueType = findtypebystring((char*)cJSON_GetObjectItem(json, "optiontype")->value);
             tmpo->item = getvaluefromjson(tmpo->valueType, json, 1);
             result->data = tmpo;
             break;
         }
         case MAP:
         {
+            cJSON* key = cJSON_CreateObject();
+            cJSON* value = cJSON_CreateObject();
             cJSON* mp = cJSON_GetObjectItem(json, "data");
             Map* tmpmap = (Map*)calloc(1, sizeof(Map));
             tmpmap->itemsize = cJSON_GetArraySize(mp);
@@ -494,8 +510,14 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
             for (i = 0, obj = mp->child; obj != NULL; obj = obj->next, i++)
             {
                 Pair* pairtmp = (Pair*)calloc(1, sizeof(Pair));
-                pairtmp->key = getvaluefromjson(tmpmap->keyType, cJSON_GetObjectItem(obj, "keydata"), 0);
-                pairtmp->value = getvaluefromjson(tmpmap->valueType, cJSON_GetObjectItem(obj, "valuedata"), 0);
+                key = cJSON_GetObjectItem(obj, "keydata");
+                value = cJSON_GetObjectItem(obj, "valuedata");
+                if (tmpmap->keyType >= 18 && tmpmap->keyType <= 21 || tmpmap->keyType == MAP)
+                    key = key->child;
+                if (tmpmap->valueType >= 18 && tmpmap->valueType <= 21 || tmpmap->valueType == MAP)
+                    value = value->child;
+                pairtmp->key = getvaluefromjson(tmpmap->keyType, key, 0);
+                pairtmp->value = getvaluefromjson(tmpmap->valueType, value, 0);
                 tmpmap->items[i] = pairtmp;
             }
             result->data = tmpmap;
@@ -864,14 +886,6 @@ void writevaluebybin(BinField* value, charv* str)
     }
 }
 
-char* fname(char* path)
-{
-    char* aux = path;
-    while (*path++);
-    while (*path-- != '\\' && path != aux);
-    return (aux == path) ? path : path + 2;
-}
-
 void strip_ext(char* fname)
 {
     char* end = fname + strlen(fname);
@@ -901,7 +915,8 @@ int main(int argc, char** argv)
             scanf("press enter to exit.");
             return 1;
         }
-        char* name = fname(argv[2]);
+        char* name = (char*)calloc(strlen(argv[2]), 1);
+        strcat(name, argv[2]);
         strip_ext(name);
         strcat(name, ".json");
 
@@ -1050,6 +1065,12 @@ int main(int argc, char** argv)
         printf("finised json file.\n");
         printf("writing to file.\n");
         file = fopen(name, "wb");
+        if (!file)
+        {
+            printf("ERROR: cannot write file \"%s\".", name);
+            scanf("press enter to exit.");
+            return 1;
+        }
         char* out =  cJSON_Print(root, 1);
         fwrite(out, strlen(out), 1, file);
         printf("finised writing to file.\n");
@@ -1064,7 +1085,8 @@ int main(int argc, char** argv)
             scanf("press enter to exit.");
             return 1;
         }
-        char* name = fname(argv[2]);
+        char* name = (char*)calloc(strlen(argv[2]), 1);
+        strcat(name, argv[2]);
         strip_ext(name);
         strcat(name, ".bin");
 
@@ -1182,8 +1204,14 @@ int main(int argc, char** argv)
 
         printf("finised json file.\n");
         printf("writing to file.\n");
-        FILE* filee = fopen(name, "wb");
-        fwrite(str->data, str->lenght, 1, filee);
+        file = fopen(name, "wb");
+        if (!file)
+        {
+            printf("ERROR: cannot write file \"%s\".", name);
+            scanf("press enter to exit.");
+            return 1;
+        }
+        fwrite(str->data, str->lenght, 1, file);
         printf("finised writing to file.\n");
         fclose(file);
     }

@@ -1,0 +1,2808 @@
+{
+	"Signature": "PROP",
+	"Version": 2,
+	"Linked": [
+		"DATA/Characters/Ahri/Ahri.bin",
+		"DATA/Ahri_Skins_Skin0_Skins_Skin1_Skins_Skin10_Skins_Skin11_Skins_Skin12_Skins_Skin13_Skins_Skin14_Skins_Skin15_Skins_Skin16_Skins_Skin17_Skins_Skin18_Skins_Skin19_Skins_Skin2_Skins_Skin20_Skins_Skin21_Skins_Skin22_Skins_Skin23_Skins_Skin24_Skins_Skin25_Skins_Skin26_Skins_Skin27_Skins_Skin29_Skins_Skin3_Skins_Skin30_Skins_Skin31_Skins_Skin32_Skins_Skin33_Skins_Skin4_Skins_Skin5_Skins_Skin6_Skins_Skin7_Skins_Skin8_Skins_Skin9.bin",
+		"DATA/Characters/Ahri/Animations/Skin27.bin",
+		"DATA/Ahri_Skins_Skin0_Skins_Skin1_Skins_Skin10_Skins_Skin11_Skins_Skin12_Skins_Skin13_Skins_Skin14_Skins_Skin15_Skins_Skin18_Skins_Skin2_Skins_Skin27_Skins_Skin29_Skins_Skin3_Skins_Skin30_Skins_Skin31_Skins_Skin32_Skins_Skin33_Skins_Skin4_Skins_Skin5_Skins_Skin6_Skins_Skin7_Skins_Skin8_Skins_Skin9.bin",
+		"DATA/Ahri_Skins_Skin0_Skins_Skin1_Skins_Skin14_Skins_Skin18_Skins_Skin2_Skins_Skin27_Skins_Skin29_Skins_Skin3_Skins_Skin30_Skins_Skin31_Skins_Skin32_Skins_Skin33_Skins_Skin5_Skins_Skin6_Skins_Skin7.bin",
+		"DATA/Ahri_Skins_Skin27_Skins_Skin29_Skins_Skin30_Skins_Skin31_Skins_Skin32_Skins_Skin33.bin",
+		"DATA/Ahri_Skins_Skin0_Skins_Skin1_Skins_Skin15_Skins_Skin2_Skins_Skin27_Skins_Skin29_Skins_Skin3_Skins_Skin30_Skins_Skin31_Skins_Skin32_Skins_Skin33_Skins_Skin6_Skins_Skin7.bin"
+	],
+	"Entries": 
+	{
+		"Characters/Ahri/Skins/Skin0": 
+		{
+			"SkinCharacterDataProperties": [
+				{
+					"name": "skinClassification",
+					"type": "UInt32",
+					"data": 1
+				}, 
+				{
+					"name": "championSkinName",
+					"type": "String",
+					"data": "AhriSkin27"
+				}, 
+				{
+					"name": "metaDataTags",
+					"type": "String",
+					"data": "faction:ionia,gender:female,race:vastaya,skineline:kanmei"
+				}, 
+				{
+					"name": "skinUpgradeData",
+					"type": "Embedded",
+					"skinUpgradeData": [
+						{
+							"name": "0xCB522723",
+							"type": "Container",
+							"containertype": "Link",
+							"data": [
+								"0xB0A65006",
+								"0xF3D6C35B"
+							]
+						}
+					]
+				}, 
+				{
+					"name": "loadscreen",
+					"type": "Embedded",
+					"CensoredImage": [
+						{
+							"name": "image",
+							"type": "String",
+							"data": "ASSETS/Characters/Ahri/Skins/Skin27/AhriLoadScreen_27.PIE_C_10_16.dds"
+						}
+					]
+				}, 
+				{
+					"name": "loadscreenVintage",
+					"type": "Embedded",
+					"CensoredImage": [
+						{
+							"name": "image",
+							"type": "String",
+							"data": "ASSETS/Characters/Ahri/Skins/Skin27/AhriLoadscreen_27_LE.PIE_C_10_16.dds"
+						}
+					]
+				}, 
+				{
+					"name": "skinAudioProperties",
+					"type": "Embedded",
+					"skinAudioProperties": [
+						{
+							"name": "tagEventList",
+							"type": "Container",
+							"containertype": "String",
+							"data": [
+								"Ahri",
+								"AhriSkin27"
+							]
+						}, 
+						{
+							"name": "bankUnits",
+							"type": "Container",
+							"containertype": "Embedded",
+							"data": 
+							{
+								"BankUnit": [
+									{
+										"name": "name",
+										"type": "String",
+										"data": "Ahri_Base_SFX"
+									}, 
+									{
+										"name": "bankPath",
+										"type": "Container",
+										"containertype": "String",
+										"data": [
+											"ASSETS/Sounds/Wwise2016/SFX/Characters/Ahri/Skins/Base/Ahri_Base_SFX_audio.bnk",
+											"ASSETS/Sounds/Wwise2016/SFX/Characters/Ahri/Skins/Base/Ahri_Base_SFX_events.bnk"
+										]
+									}, 
+									{
+										"name": "events",
+										"type": "Container",
+										"containertype": "String",
+										"data": [
+											"Play_sfx_Ahri_AhriBasicAttack2_OnCast",
+											"Play_sfx_Ahri_AhriBasicAttack2_OnHit",
+											"Play_sfx_Ahri_AhriBasicAttack2_OnMissileLaunch",
+											"Play_sfx_Ahri_AhriBasicAttack_OnCast",
+											"Play_sfx_Ahri_AhriBasicAttack_OnHit",
+											"Play_sfx_Ahri_AhriBasicAttack_OnMissileLaunch",
+											"Play_sfx_Ahri_AhriCritAttack_OnCast",
+											"Play_sfx_Ahri_AhriCritAttack_OnHit",
+											"Play_sfx_Ahri_AhriCritAttack_OnMissileLaunch",
+											"Play_sfx_Ahri_AhriFoxFire_OnBuffActivate",
+											"Play_sfx_Ahri_AhriFoxFire_OnCast",
+											"Play_sfx_Ahri_AhriFoxFireMissileTwo_hit",
+											"Play_sfx_Ahri_AhriFoxFireMissileTwo_OnMissileLaunch",
+											"Play_sfx_Ahri_AhriOrbMissile_OnMissileLaunch",
+											"Play_sfx_Ahri_AhriOrbofDeception_hit",
+											"Play_sfx_Ahri_AhriOrbofDeception_OnCast",
+											"Play_sfx_Ahri_AhriOrbReturn_OnMissileLaunch",
+											"Play_sfx_Ahri_AhriSeduce_OnCast",
+											"Play_sfx_Ahri_AhriSeduceMissile_hit",
+											"Play_sfx_Ahri_AhriSeduceMissile_OnMissileLaunch",
+											"Play_sfx_Ahri_AhriSoulCrusher_buffactivate",
+											"Play_sfx_Ahri_AhriSoulCrusher_OnBuffActivate",
+											"Play_sfx_Ahri_AhriTumble_OnCast",
+											"Play_sfx_Ahri_AhriTumbleMissile_OnHit",
+											"Play_sfx_Ahri_AhriTumbleMissile_OnMissileLaunch",
+											"Play_sfx_Ahri_Dance3D_buffactivate",
+											"Play_sfx_Ahri_Death3D_cast",
+											"Play_sfx_Ahri_Joke3D_buffactivate",
+											"Play_sfx_Ahri_Laugh3D_buffactivate",
+											"Play_sfx_Ahri_Taunt3D_buffactivate",
+											"Stop_sfx_Ahri_AhriBasicAttack2_OnMissileLaunch",
+											"Stop_sfx_Ahri_AhriBasicAttack_OnMissileLaunch",
+											"Stop_sfx_Ahri_AhriCritAttack_OnMissileLaunch",
+											"Stop_sfx_Ahri_AhriFoxFire_OnBuffActivate",
+											"Stop_sfx_Ahri_AhriFoxFireMissileTwo_hit",
+											"Stop_sfx_Ahri_AhriFoxFireMissileTwo_OnMissileLaunch",
+											"Stop_sfx_Ahri_AhriOrbMissile_OnMissileLaunch",
+											"Stop_sfx_Ahri_AhriOrbReturn_OnMissileLaunch",
+											"Stop_sfx_Ahri_AhriSeduceMissile_OnMissileLaunch",
+											"Stop_sfx_Ahri_AhriSoulCrusher_buffactivate",
+											"Stop_sfx_Ahri_Dance3D_buffactivate",
+											"Stop_sfx_Ahri_Death3D_cast",
+											"Stop_sfx_Ahri_Joke3D_buffactivate",
+											"Stop_sfx_Ahri_Laugh3D_buffactivate",
+											"Stop_sfx_Ahri_Taunt3D_buffactivate"
+										]
+									}
+								],
+								"BankUnit": [
+									{
+										"name": "name",
+										"type": "String",
+										"data": "Ahri_Skin27_VO"
+									}, 
+									{
+										"name": "bankPath",
+										"type": "Container",
+										"containertype": "String",
+										"data": [
+											"ASSETS/Sounds/Wwise2016/VO/en_US/Characters/Ahri/Skins/Skin27/Ahri_Skin27_VO_audio.bnk",
+											"ASSETS/Sounds/Wwise2016/VO/en_US/Characters/Ahri/Skins/Skin27/Ahri_Skin27_VO_events.bnk",
+											"ASSETS/Sounds/Wwise2016/VO/en_US/Characters/Ahri/Skins/Skin27/Ahri_Skin27_VO_audio.wpk"
+										]
+									}, 
+									{
+										"name": "events",
+										"type": "Container",
+										"containertype": "String",
+										"data": [
+											"Play_vo_AhriSkin27_AhriBasicAttack2_cast3D",
+											"Play_vo_AhriSkin27_AhriBasicAttack_cast3D",
+											"Play_vo_AhriSkin27_AhriCritAttack_cast3D",
+											"Play_vo_AhriSkin27_AhriFoxFire_cast3D",
+											"Play_vo_AhriSkin27_AhriOrbofDeception_cast3D",
+											"Play_vo_AhriSkin27_AhriSeduceMissile_hit3D",
+											"Play_vo_AhriSkin27_AhriTumble_cast3D",
+											"Play_vo_AhriSkin27_Attack2DCassiopeiaSkin09",
+											"Play_vo_AhriSkin27_Attack2DGeneral",
+											"Play_vo_AhriSkin27_Attack2DLilliaSkin01",
+											"Play_vo_AhriSkin27_Attack2DThreshSkin17",
+											"Play_vo_AhriSkin27_Death3D",
+											"Play_vo_AhriSkin27_FirstEncounter3DCassiopeiaSkin09",
+											"Play_vo_AhriSkin27_FirstEncounter3DKindredSkin03",
+											"Play_vo_AhriSkin27_FirstEncounter3DLilliaSkin01",
+											"Play_vo_AhriSkin27_FirstEncounter3DRivenSkin25",
+											"Play_vo_AhriSkin27_FirstEncounter3DTeemoSkin25",
+											"Play_vo_AhriSkin27_FirstEncounter3DThreshSkin17",
+											"Play_vo_AhriSkin27_FirstEncounter3DVayneSkin14",
+											"Play_vo_AhriSkin27_Joke3DGeneral",
+											"Play_vo_AhriSkin27_JokeResponse3DGeneral",
+											"Play_vo_AhriSkin27_Kill3DCassiopeiaSkin09",
+											"Play_vo_AhriSkin27_Kill3DGeneral",
+											"Play_vo_AhriSkin27_Kill3DKindredSkin03",
+											"Play_vo_AhriSkin27_Kill3DLilliaSkin01",
+											"Play_vo_AhriSkin27_Kill3DPentakill",
+											"Play_vo_AhriSkin27_Kill3DRivenSkin25",
+											"Play_vo_AhriSkin27_Kill3DTeemoSkin25",
+											"Play_vo_AhriSkin27_Kill3DThreshSkin17",
+											"Play_vo_AhriSkin27_Kill3DVayneSkin14",
+											"Play_vo_AhriSkin27_Laugh3DGeneral",
+											"Play_vo_AhriSkin27_Move2DFirst",
+											"Play_vo_AhriSkin27_Move2DFirstAllySpiritBlossom",
+											"Play_vo_AhriSkin27_Move2DFirstEnemySpiritBlossom",
+											"Play_vo_AhriSkin27_Move2DLong",
+											"Play_vo_AhriSkin27_Move2DStandard",
+											"Play_vo_AhriSkin27_Recall3DGeneral",
+											"Play_vo_AhriSkin27_Respawn2DGeneral",
+											"Play_vo_AhriSkin27_Taunt3DGeneral",
+											"Play_vo_AhriSkin27_TauntResponse3DGeneral"
+										]
+									}, 
+									{
+										"name": "voiceOver",
+										"type": "Bool",
+										"data": true
+									}
+								],
+								"BankUnit": [
+									{
+										"name": "name",
+										"type": "String",
+										"data": "Ahri_Skin27_SFX"
+									}, 
+									{
+										"name": "bankPath",
+										"type": "Container",
+										"containertype": "String",
+										"data": [
+											"ASSETS/Sounds/Wwise2016/SFX/Characters/Ahri/Skins/Skin27/Ahri_Skin27_SFX_audio.bnk",
+											"ASSETS/Sounds/Wwise2016/SFX/Characters/Ahri/Skins/Skin27/Ahri_Skin27_SFX_events.bnk"
+										]
+									}, 
+									{
+										"name": "events",
+										"type": "Container",
+										"containertype": "String",
+										"data": [
+											"Play_sfx_AhriSkin27_AhriBasicAttack2_OnCast",
+											"Play_sfx_AhriSkin27_AhriBasicAttack2_OnHit",
+											"Play_sfx_AhriSkin27_AhriBasicAttack2_OnMissileLaunch",
+											"Play_sfx_AhriSkin27_AhriBasicAttack_OnCast",
+											"Play_sfx_AhriSkin27_AhriBasicAttack_OnHit",
+											"Play_sfx_AhriSkin27_AhriBasicAttack_OnMissileLaunch",
+											"Play_sfx_AhriSkin27_AhriCritAttack_OnCast",
+											"Play_sfx_AhriSkin27_AhriCritAttack_OnHit",
+											"Play_sfx_AhriSkin27_AhriCritAttack_OnMissileLaunch",
+											"Play_sfx_AhriSkin27_AhriFoxFire_OnBuffActivate",
+											"Play_sfx_AhriSkin27_AhriFoxFire_OnCast",
+											"Play_sfx_AhriSkin27_AhriFoxFireMissileTwo_hit",
+											"Play_sfx_AhriSkin27_AhriFoxFireMissileTwo_OnMissileLaunch",
+											"Play_sfx_AhriSkin27_AhriOrbMissile_OnHit",
+											"Play_sfx_AhriSkin27_AhriOrbMissile_OnMissileLaunch",
+											"Play_sfx_AhriSkin27_AhriOrbofDeception_OnCast",
+											"Play_sfx_AhriSkin27_AhriOrbReturn_OnMissileLaunch",
+											"Play_sfx_AhriSkin27_AhriSeduce_OnCast",
+											"Play_sfx_AhriSkin27_AhriSeduceMissile_hit",
+											"Play_sfx_AhriSkin27_AhriSeduceMissile_OnMissileLaunch",
+											"Play_sfx_AhriSkin27_AhriSoulCrusher_buffactivate",
+											"Play_sfx_AhriSkin27_AhriSoulCrusher_OnBuffActivate",
+											"Play_sfx_AhriSkin27_AhriTumble_OnCast",
+											"Play_sfx_AhriSkin27_AhriTumbleMissile_OnHit",
+											"Play_sfx_AhriSkin27_AhriTumbleMissile_OnMissileLaunch",
+											"Play_sfx_AhriSkin27_Dance3D_buffactivate",
+											"Play_sfx_AhriSkin27_Dance3D_music_anim",
+											"Play_sfx_AhriSkin27_Idle2_buffactivate",
+											"Play_sfx_AhriSkin27_Idle3_buffactivate",
+											"Play_sfx_AhriSkin27_Idle4pt1_buffactivate",
+											"Play_sfx_AhriSkin27_Idle4pt2_buffactivate",
+											"Play_sfx_AhriSkin27_Joke3D_buffactivate",
+											"Play_sfx_AhriSkin27_Laugh3D_buffactivate",
+											"Play_sfx_AhriSkin27_Recall_buffactivate",
+											"Play_sfx_AhriSkin27_Taunt3D_buffactivate",
+											"Play_sfx_AhriSkin27_Transformation_cast",
+											"Play_sfx_AhriSkin27_Winddown3D_buffactivate",
+											"Play_vo_AhriSkin27_Attack2DCassiopeiaSkin09",
+											"Play_vo_AhriSkin27_Attack2DGeneral",
+											"Play_vo_AhriSkin27_Attack2DLilliaSkin01",
+											"Play_vo_AhriSkin27_Attack2DThreshSkin17",
+											"Play_vo_AhriSkin27_Death3D",
+											"Play_vo_AhriSkin27_FirstEncounter3DCassiopeiaSkin09",
+											"Play_vo_AhriSkin27_FirstEncounter3DKindredSkin03",
+											"Play_vo_AhriSkin27_FirstEncounter3DLilliaSkin01",
+											"Play_vo_AhriSkin27_FirstEncounter3DRivenSkin25",
+											"Play_vo_AhriSkin27_FirstEncounter3DTeemoSkin25",
+											"Play_vo_AhriSkin27_FirstEncounter3DThreshSkin17",
+											"Play_vo_AhriSkin27_FirstEncounter3DVayneSkin14",
+											"Play_vo_AhriSkin27_JokeResponse3DGeneral",
+											"Play_vo_AhriSkin27_Kill3DCassiopeiaSkin09",
+											"Play_vo_AhriSkin27_Kill3DGeneral",
+											"Play_vo_AhriSkin27_Kill3DKindredSkin03",
+											"Play_vo_AhriSkin27_Kill3DLilliaSkin01",
+											"Play_vo_AhriSkin27_Kill3DPentakill",
+											"Play_vo_AhriSkin27_Kill3DRivenSkin25",
+											"Play_vo_AhriSkin27_Kill3DTeemoSkin25",
+											"Play_vo_AhriSkin27_Kill3DThreshSkin17",
+											"Play_vo_AhriSkin27_Kill3DVayneSkin14",
+											"Play_vo_AhriSkin27_Laugh3DGeneral",
+											"Play_vo_AhriSkin27_Move2DFirst",
+											"Play_vo_AhriSkin27_Move2DLong",
+											"Play_vo_AhriSkin27_Move2DStandard",
+											"Play_vo_AhriSkin27_Respawn2DGeneral",
+											"Play_vo_AhriSkin27_Taunt3DGeneral",
+											"Play_vo_AhriSkin27_TauntResponse3DGeneral",
+											"Stop_sfx_AhriSkin27_AhriBasicAttack2_OnMissileLaunch",
+											"Stop_sfx_AhriSkin27_AhriBasicAttack_OnMissileLaunch",
+											"Stop_sfx_AhriSkin27_AhriCritAttack_OnMissileLaunch",
+											"Stop_sfx_AhriSkin27_AhriFoxFire_OnBuffActivate",
+											"Stop_sfx_AhriSkin27_AhriFoxFireMissileTwo_hit",
+											"Stop_sfx_AhriSkin27_AhriFoxFireMissileTwo_OnMissileLaunch",
+											"Stop_sfx_AhriSkin27_AhriOrbMissile_OnMissileLaunch",
+											"Stop_sfx_AhriSkin27_AhriOrbReturn_OnMissileLaunch",
+											"Stop_sfx_AhriSkin27_AhriSeduceMissile_OnMissileLaunch",
+											"Stop_sfx_AhriSkin27_AhriSoulCrusher_buffactivate",
+											"Stop_sfx_AhriSkin27_Dance3D_buffactivate",
+											"Stop_sfx_AhriSkin27_Joke3D_buffactivate",
+											"Stop_sfx_AhriSkin27_Laugh3D_buffactivate",
+											"Stop_sfx_AhriSkin27_Taunt3D_buffactivate"
+										]
+									}
+								]
+							}
+						}
+					]
+				}, 
+				{
+					"name": "skinAnimationProperties",
+					"type": "Embedded",
+					"skinAnimationProperties": [
+						{
+							"name": "animationGraphData",
+							"type": "Link",
+							"data": "0x7954039B"
+						}
+					]
+				}, 
+				{
+					"name": "skinMeshProperties",
+					"type": "Embedded",
+					"SkinMeshDataProperties": [
+						{
+							"name": "skeleton",
+							"type": "String",
+							"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27.PIE_C_10_16.skl"
+						}, 
+						{
+							"name": "simpleSkin",
+							"type": "String",
+							"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27.PIE_C_10_16.skn"
+						}, 
+						{
+							"name": "texture",
+							"type": "String",
+							"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_TX_CM.PIE_C_10_16.dds"
+						}, 
+						{
+							"name": "skinScale",
+							"type": "Float32",
+							"data": 1.25999999
+						}, 
+						{
+							"name": "selfIllumination",
+							"type": "Float32",
+							"data": 0.699999988
+						}, 
+						{
+							"name": "overrideBoundingBox",
+							"type": "Option",
+							"optiontype": "Vector3",
+							"data": [
+								187.300003, 160.300003, 187.300003
+							]
+						}, 
+						{
+							"name": "allowCharacterInking",
+							"type": "Bool",
+							"data": false
+						}, 
+						{
+							"name": "reflectionFresnelColor",
+							"type": "RGBA",
+							"data": [
+								0, 0, 0, 255
+							]
+						}, 
+						{
+							"name": "initialSubmeshToHide",
+							"type": "String",
+							"data": "Snow_MAT  MidForm_MAT Fox_MAT"
+						}, 
+						{
+							"name": "materialOverride",
+							"type": "Container",
+							"containertype": "Embedded",
+							"data": 
+							{
+								"SkinMeshDataProperties_MaterialOverride": [
+									{
+										"name": "material",
+										"type": "Link",
+										"data": "Characters/Ahri/Skins/Skin27/Materials/SingleTailPanning_inst"
+									}, 
+									{
+										"name": "Submesh",
+										"type": "String",
+										"data": "Ahri_Tail_MAT"
+									}
+								],
+								"SkinMeshDataProperties_MaterialOverride": [
+									{
+										"name": "material",
+										"type": "Link",
+										"data": "Characters/Ahri/Skins/Skin27/Materials/TailsPanning_inst"
+									}, 
+									{
+										"name": "Submesh",
+										"type": "String",
+										"data": "Ahri_Tails_MAT"
+									}
+								],
+								"SkinMeshDataProperties_MaterialOverride": [
+									{
+										"name": "material",
+										"type": "Link",
+										"data": "Characters/Ahri/Skins/Skin27/Materials/Fox_inst"
+									}, 
+									{
+										"name": "Submesh",
+										"type": "String",
+										"data": "Fox_MAT"
+									}
+								],
+								"SkinMeshDataProperties_MaterialOverride": [
+									{
+										"name": "material",
+										"type": "Link",
+										"data": "Characters/Ahri/Skins/Skin27/Materials/PanBloom3_inst"
+									}, 
+									{
+										"name": "Submesh",
+										"type": "String",
+										"data": "VFX_Sleeves_Mat"
+									}
+								],
+								"SkinMeshDataProperties_MaterialOverride": [
+									{
+										"name": "material",
+										"type": "Link",
+										"data": "Characters/Ahri/Skins/Skin27/Materials/MidForm_inst"
+									}, 
+									{
+										"name": "Submesh",
+										"type": "String",
+										"data": "MidForm_MAT"
+									}
+								],
+								"SkinMeshDataProperties_MaterialOverride": [
+									{
+										"name": "texture",
+										"type": "String",
+										"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Snow_TX_CM.PIE_C_10_16.dds"
+									}, 
+									{
+										"name": "Submesh",
+										"type": "String",
+										"data": "Snow_MAT"
+									}
+								]
+							}
+						}, 
+						{
+							"name": "rigPoseModifierData",
+							"type": "Container",
+							"containertype": "Pointer",
+							"data": 
+							{
+								"ConformToPathRigPoseModifierData": [
+									{
+										"name": "mStartingJointName",
+										"type": "Hash",
+										"data": "0x33D92B74"
+									}, 
+									{
+										"name": "mEndingJointName",
+										"type": "Hash",
+										"data": "0x32D929E1"
+									}, 
+									{
+										"name": "mDefaultMaskName",
+										"type": "Hash",
+										"data": "0x643A01CA"
+									}
+								],
+								"ConformToPathRigPoseModifierData": [
+									{
+										"name": "mStartingJointName",
+										"type": "Hash",
+										"data": "0x2E4D2FAE"
+									}, 
+									{
+										"name": "mEndingJointName",
+										"type": "Hash",
+										"data": "0x314D3467"
+									}, 
+									{
+										"name": "mDefaultMaskName",
+										"type": "Hash",
+										"data": "0x71934C0D"
+									}
+								],
+								"ConformToPathRigPoseModifierData": [
+									{
+										"name": "mStartingJointName",
+										"type": "Hash",
+										"data": "0x2AF8E6C7"
+									}, 
+									{
+										"name": "mEndingJointName",
+										"type": "Hash",
+										"data": "0xF9C7E646"
+									}, 
+									{
+										"name": "mDefaultMaskName",
+										"type": "Hash",
+										"data": "0xEAB24761"
+									}, 
+									{
+										"name": "mMaxBoneAngle",
+										"type": "Float32",
+										"data": 50.0
+									}, 
+									{
+										"name": "mDampingValue",
+										"type": "Float32",
+										"data": 15.0
+									}, 
+									{
+										"name": "mVelMultiplier",
+										"type": "Float32",
+										"data": -2.0
+									}
+								],
+								"ConformToPathRigPoseModifierData": [
+									{
+										"name": "mStartingJointName",
+										"type": "Hash",
+										"data": "0x6565CD6E"
+									}, 
+									{
+										"name": "mEndingJointName",
+										"type": "Hash",
+										"data": "0x6765D094"
+									}, 
+									{
+										"name": "mDefaultMaskName",
+										"type": "Hash",
+										"data": "0x73A767DE"
+									}
+								]
+							}
+						}
+					]
+				}, 
+				{
+					"name": "armorMaterial",
+					"type": "String",
+					"data": "Flesh"
+				}, 
+				{
+					"name": "defaultAnimations",
+					"type": "Container",
+					"containertype": "String",
+					"data": [
+						"Additive_Center_Buffbone"
+					]
+				}, 
+				{
+					"name": "iconAvatar",
+					"type": "String",
+					"data": "ASSETS/Characters/Ahri/HUD/Ahri_Circle_27.PIE_C_10_16.dds"
+				}, 
+				{
+					"name": "mContextualActionData",
+					"type": "Link",
+					"data": "0xB63B3790"
+				}, 
+				{
+					"name": "iconCircle",
+					"type": "Option",
+					"optiontype": "String",
+					"data": "ASSETS/Characters/Ahri/HUD/Ahri_Circle.dds"
+				}, 
+				{
+					"name": "iconSquare",
+					"type": "Option",
+					"optiontype": "String",
+					"data": "ASSETS/Characters/Ahri/HUD/Ahri_Square.dds"
+				}, 
+				{
+					"name": "healthBarData",
+					"type": "Embedded",
+					"CharacterHealthBarDataRecord": [
+						{
+							"name": "attachToBone",
+							"type": "String",
+							"data": "Buffbone_Cstm_Healthbar"
+						}
+					]
+				}, 
+				{
+					"name": "mEmblems",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"SkinEmblem": [
+							{
+								"name": "mEmblemData",
+								"type": "Link",
+								"data": "Emblems/31"
+							}, 
+							{
+								"name": "mLoadingScreenAnchor",
+								"type": "UInt32",
+								"data": 1
+							}
+						]
+					}
+				}, 
+				{
+					"name": "mResourceResolver",
+					"type": "Link",
+					"data": "0x0FD6B77C"
+				}
+			]
+		},
+		"Characters/Ahri/Skins/Skin0/Resources": 
+		{
+			"ResourceResolver": [
+				{
+					"name": "resourceMap",
+					"type": "Map",
+					"keytype": "Hash",
+					"valuetype": "Link",
+					"data": [
+						{
+							"keydata": "Ahri_BA_mis",
+							"valuedata": "0x68D84AB2"
+						}, 
+						{
+							"keydata": "Ahri_BA_tar",
+							"valuedata": "0x4540481E"
+						}, 
+						{
+							"keydata": "Ahri_E_buf",
+							"valuedata": "0xB0C9630C"
+						}, 
+						{
+							"keydata": "Ahri_E_cas",
+							"valuedata": "0x5154BFF0"
+						}, 
+						{
+							"keydata": "Ahri_E_mis",
+							"valuedata": "0x55DE5C4E"
+						}, 
+						{
+							"keydata": "Ahri_E_tar",
+							"valuedata": "0x94D2845A"
+						}, 
+						{
+							"keydata": "Ahri_Orb",
+							"valuedata": "0xE2D2B49C"
+						}, 
+						{
+							"keydata": "Ahri_P",
+							"valuedata": "0x8F0463ED"
+						}, 
+						{
+							"keydata": "Ahri_P_Heal",
+							"valuedata": "0x05B279F8"
+						}, 
+						{
+							"keydata": "Ahri_P_tar",
+							"valuedata": "0xA0511AD5"
+						}, 
+						{
+							"keydata": "Ahri_Q_Cas",
+							"valuedata": "0xA3D078B4"
+						}, 
+						{
+							"keydata": "Ahri_Q_mis",
+							"valuedata": "0x641E85DA"
+						}, 
+						{
+							"keydata": "Ahri_Q_mis_02",
+							"valuedata": "0x09F27B1D"
+						}, 
+						{
+							"keydata": "Ahri_Q_Speed",
+							"valuedata": "0xFB33953A"
+						}, 
+						{
+							"keydata": "Ahri_Q_tar",
+							"valuedata": "0x50B577A6"
+						}, 
+						{
+							"keydata": "Ahri_Q_tar_02",
+							"valuedata": "0x914C6999"
+						}, 
+						{
+							"keydata": "Ahri_R_cas",
+							"valuedata": "0x9859A9B9"
+						}, 
+						{
+							"keydata": "Ahri_R_mis",
+							"valuedata": "0x0ADDCEC3"
+						}, 
+						{
+							"keydata": "Ahri_R_mis_02",
+							"valuedata": "0x00C22C3A"
+						}, 
+						{
+							"keydata": "Ahri_R_Ready_tar",
+							"valuedata": "0x35A2D7EF"
+						}, 
+						{
+							"keydata": "Ahri_R_Tar",
+							"valuedata": "0xEB74AAC7"
+						}, 
+						{
+							"keydata": "Ahri_R_Tumblekick_tar_02",
+							"valuedata": "Characters/Ahri/Skins/Skin0/Particles/Ahri_Base_R_Tumblekick_tar_02"
+						}, 
+						{
+							"keydata": "Ahri_W_cas",
+							"valuedata": "0x15B0895E"
+						}, 
+						{
+							"keydata": "Ahri_W_mis",
+							"valuedata": "0xDECB7C20"
+						}, 
+						{
+							"keydata": "Ahri_W_mis_02",
+							"valuedata": "0xB79C834F"
+						}, 
+						{
+							"keydata": "Ahri_W_tar",
+							"valuedata": "0x1E5D74EC"
+						}, 
+						{
+							"keydata": "Ahri_W_weap_cas",
+							"valuedata": "Characters/Ahri/Skins/Skin0/Particles/Ahri_Base_W_weap_cas"
+						}, 
+						{
+							"keydata": "Ahri__Tumblekick_tar_01",
+							"valuedata": "Characters/Ahri/Skins/Skin0/Particles/Ahri_Base__Tumblekick_tar_01"
+						}, 
+						{
+							"keydata": "0x44FC6EC4",
+							"valuedata": "0x5749DF04"
+						}, 
+						{
+							"keydata": "0x55FF05B7",
+							"valuedata": "Characters/Ahri/Skins/Skin0/Particles/Ahri_Emote_Dance_Sound"
+						}, 
+						{
+							"keydata": "0x0C42E22A",
+							"valuedata": "0x83AC03F0"
+						}, 
+						{
+							"keydata": "0xB2DB5291",
+							"valuedata": "0x14B52AB9"
+						}, 
+						{
+							"keydata": "0xAD653B35",
+							"valuedata": "0x8B1BC7D7"
+						}, 
+						{
+							"keydata": "0x322B31FC",
+							"valuedata": "0xB3FE252E"
+						}, 
+						{
+							"keydata": "0x83F3A5A7",
+							"valuedata": "Characters/Ahri/Skins/Skin0/Particles/Ahri_Taunt"
+						}, 
+						{
+							"keydata": "Ahri_Orb_cas",
+							"valuedata": "0x00000000"
+						}, 
+						{
+							"keydata": "0x73070FA0",
+							"valuedata": "0x0F945D21"
+						}, 
+						{
+							"keydata": "0x9CD83E3B",
+							"valuedata": "0xCE120E30"
+						}, 
+						{
+							"keydata": "0x12BA8B28",
+							"valuedata": "0x98D5EADD"
+						}, 
+						{
+							"keydata": "0x97C704D3",
+							"valuedata": "0x080CE6A8"
+						}, 
+						{
+							"keydata": "0xE3F3975A",
+							"valuedata": "0x417AA329"
+						}, 
+						{
+							"keydata": "0x5A44F015",
+							"valuedata": "0x974A8ED2"
+						}, 
+						{
+							"keydata": "0xB5476456",
+							"valuedata": "0xD0D09281"
+						}, 
+						{
+							"keydata": "0x9A067DC5",
+							"valuedata": "0xC1456BA2"
+						}, 
+						{
+							"keydata": "0xD94FD270",
+							"valuedata": "0x02AEC5E3"
+						}, 
+						{
+							"keydata": "0x6C50F32B",
+							"valuedata": "0x6163A07C"
+						}, 
+						{
+							"keydata": "0x46FC90D7",
+							"valuedata": "0x560E5E6E"
+						}, 
+						{
+							"keydata": "0x7709D5F2",
+							"valuedata": "0x812D10C3"
+						}, 
+						{
+							"keydata": "0xB596312A",
+							"valuedata": "0x3BB56613"
+						}, 
+						{
+							"keydata": "0x139F8C51",
+							"valuedata": "0xAD6CDC16"
+						}, 
+						{
+							"keydata": "0x4729FFD9",
+							"valuedata": "0x265E8CAC"
+						}, 
+						{
+							"keydata": "0x4629FE46",
+							"valuedata": "0x275E8E3F"
+						}, 
+						{
+							"keydata": "0x5AA7FDE6",
+							"valuedata": "0x0A216803"
+						}, 
+						{
+							"keydata": "0x5BA7FF79",
+							"valuedata": "0x09216670"
+						}, 
+						{
+							"keydata": "0xB8BD6211",
+							"valuedata": "0xD6ECDD7A"
+						}, 
+						{
+							"keydata": "0x4B806D37",
+							"valuedata": "0x0CC9D6F2"
+						}, 
+						{
+							"keydata": "0x5D4A9FA6",
+							"valuedata": "0x1BCAB509"
+						}, 
+						{
+							"keydata": "0x29F72328",
+							"valuedata": "0xDFD9D34B"
+						}, 
+						{
+							"keydata": "0x44120866",
+							"valuedata": "0x0A48F2D3"
+						}, 
+						{
+							"keydata": "0xCE2650ED",
+							"valuedata": "0x460DFF4C"
+						}, 
+						{
+							"keydata": "0xB07BCA82",
+							"valuedata": "0x561D2E77"
+						}, 
+						{
+							"keydata": "0x35A7B200",
+							"valuedata": "0x237B8C05"
+						}
+					]
+				}
+			]
+		},
+		"Characters/Ahri/Skins/Skin27/Materials/MidForm_inst": 
+		{
+			"StaticMaterialDef": [
+				{
+					"name": "name",
+					"type": "String",
+					"data": "Characters/Ahri/Skins/Skin27/Materials/MidForm_inst"
+				}, 
+				{
+					"name": "defaultTechnique",
+					"type": "String",
+					"data": "normal"
+				}, 
+				{
+					"name": "samplerValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "AlphaMask_Fresnel"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Shared/Materials/white.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Diffuse_Texture"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_MidForm_TX_CM.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_01"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_MidForm_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Mask"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_MidForm_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_02"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_MidForm_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_03"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_MidForm_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						]
+					}
+				}, 
+				{
+					"name": "paramValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Fresnel_Size"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.300000012, 0.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Alpha_Bias"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale01"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									3.0, 3.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Fresnel_Color"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.196078435, 0.400000006, 0.631372571, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Panning_Noise_Color"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.0, 1.0, 0.917647064, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control01"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.200000003, 0.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale02"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control02"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									-0.300000012, 0.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale03"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control03"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.100000001, 0.300000012, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "BloomIntensity"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									2.0, 0.0, 0.0, 0.0
+								]
+							}
+						]
+					}
+				}, 
+				{
+					"name": "switches",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialSwitchDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "INVERT_FRESNEL"
+							}
+						]
+					}
+				}, 
+				{
+					"name": "shaderMacros",
+					"type": "Map",
+					"keytype": "String",
+					"valuetype": "String",
+					"data": [
+						{
+							"keydata": "NUM_BLEND_WEIGHTS",
+							"valuedata": "4"
+						}
+					]
+				}, 
+				{
+					"name": "techniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "passes",
+								"type": "Container",
+								"containertype": "Embedded",
+								"data": 
+								{
+									"StaticMaterialPassDef": [
+										{
+											"name": "shader",
+											"type": "Link",
+											"data": "0x4B02128E"
+										}, 
+										{
+											"name": "blendEnable",
+											"type": "Bool",
+											"data": true
+										}, 
+										{
+											"name": "srcColorBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "srcAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "dstColorBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}, 
+										{
+											"name": "dstAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}
+									]
+								}
+							}
+						]
+					}
+				}, 
+				{
+					"name": "childTechniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialChildTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "transition"
+							}, 
+							{
+								"name": "parentName",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "shaderMacros",
+								"type": "Map",
+								"keytype": "String",
+								"valuetype": "String",
+								"data": [
+									{
+										"keydata": "TRANSITION",
+										"valuedata": "1"
+									}
+								]
+							}
+						]
+					}
+				}
+			]
+		},
+		"Characters/Ahri/Skins/Skin27/Materials/TailsPanning_inst": 
+		{
+			"StaticMaterialDef": [
+				{
+					"name": "name",
+					"type": "String",
+					"data": "Characters/Ahri/Skins/Skin27/Materials/TailsPanning_inst"
+				}, 
+				{
+					"name": "defaultTechnique",
+					"type": "String",
+					"data": "normal"
+				}, 
+				{
+					"name": "samplerValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Diffuse_Texture"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tails_TX_CM.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_01"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tails_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Mask"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tails_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_02"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tails_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_03"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tails_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						]
+					}
+				}, 
+				{
+					"name": "paramValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Panning_Noise_Color"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.0901960805, 0.247058824, 0.282352954, 1.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale01"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control01"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.0, 0.100000001, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale02"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control02"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale03"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control03"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "BloomIntensity"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.5, 0.0, 0.0, 0.0
+								]
+							}
+						]
+					}
+				}, 
+				{
+					"name": "shaderMacros",
+					"type": "Map",
+					"keytype": "String",
+					"valuetype": "String",
+					"data": [
+						{
+							"keydata": "NUM_BLEND_WEIGHTS",
+							"valuedata": "4"
+						}
+					]
+				}, 
+				{
+					"name": "techniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "passes",
+								"type": "Container",
+								"containertype": "Embedded",
+								"data": 
+								{
+									"StaticMaterialPassDef": [
+										{
+											"name": "shader",
+											"type": "Link",
+											"data": "Shaders/SkinnedMesh/MultiMask_Panner_Bloom"
+										}, 
+										{
+											"name": "blendEnable",
+											"type": "Bool",
+											"data": true
+										}, 
+										{
+											"name": "srcColorBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "srcAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "dstColorBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}, 
+										{
+											"name": "dstAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}
+									]
+								}
+							}
+						]
+					}
+				}, 
+				{
+					"name": "childTechniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialChildTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "transition"
+							}, 
+							{
+								"name": "parentName",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "shaderMacros",
+								"type": "Map",
+								"keytype": "String",
+								"valuetype": "String",
+								"data": [
+									{
+										"keydata": "TRANSITION",
+										"valuedata": "1"
+									}
+								]
+							}
+						]
+					}
+				}, 
+				{
+					"name": "dynamicMaterial",
+					"type": "Pointer",
+					"DynamicMaterialDef": [
+						{
+							"name": "parameters",
+							"type": "Container",
+							"containertype": "Embedded",
+							"data": 
+							{
+								"DynamicMaterialParameterDef": [
+									{
+										"name": "name",
+										"type": "String",
+										"data": "Panning_Noise_Color"
+									}, 
+									{
+										"name": "enabled",
+										"type": "Bool",
+										"data": false
+									}, 
+									{
+										"name": "driver",
+										"type": "Pointer",
+										"ColorGraphMaterialDriver": [
+											{
+												"name": "driver",
+												"type": "Pointer",
+												"LerpMaterialDriver": [
+													{
+														"name": "mBoolDriver",
+														"type": "Pointer",
+														"IsDeadDynamicMaterialBoolDriver": [
+														]
+													}, 
+													{
+														"name": "mTurnOnTimeSec",
+														"type": "Float32",
+														"data": 2.0
+													}, 
+													{
+														"name": "mTurnOffTimeSec",
+														"type": "Float32",
+														"data": 0.0
+													}
+												]
+											}, 
+											{
+												"name": "colors",
+												"type": "Embedded",
+												"VfxAnimatedColorVariableData": [
+													{
+														"name": "times",
+														"type": "Container",
+														"containertype": "Float32",
+														"data": [
+															0.0, 0.551666677
+														]
+													}, 
+													{
+														"name": "values",
+														"type": "Container",
+														"containertype": "Vector4",
+														"data": [
+															[
+																1.0, 0.474509805, 0.172549024, 1.0
+															],
+															[
+																0.0, 0.0, 0.0, 0.0
+															]
+														]
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		"Characters/Ahri/Skins/Skin27/Materials/PanBloom3_inst": 
+		{
+			"StaticMaterialDef": [
+				{
+					"name": "name",
+					"type": "String",
+					"data": "Characters/Ahri/Skins/Skin27/Materials/PanBloom3_inst"
+				}, 
+				{
+					"name": "defaultTechnique",
+					"type": "String",
+					"data": "normal"
+				}, 
+				{
+					"name": "samplerValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Panning_Tex"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_CloudSleeve_MAT.PIE_C_10_16.dds"
+							}
+						]
+					}
+				}, 
+				{
+					"name": "paramValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "UV_Diff_Scale"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "UV_Diff_ScrollSpeed"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.100000001, -0.200000003, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "UV_1_Scale"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "UV_1_ScrollSpeed"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.100000001, -0.200000003, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "UV_2_Scale"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "UV_2_ScrollSpeed"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.100000001, -0.200000003, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "BloomColor"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 0.0431372561, 0.745098054, 1.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "BloomIntensity"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									10.0, 0.0, 0.0, 0.0
+								]
+							}
+						]
+					}
+				}, 
+				{
+					"name": "shaderMacros",
+					"type": "Map",
+					"keytype": "String",
+					"valuetype": "String",
+					"data": [
+						{
+							"keydata": "NUM_BLEND_WEIGHTS",
+							"valuedata": "4"
+						}
+					]
+				}, 
+				{
+					"name": "techniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "passes",
+								"type": "Container",
+								"containertype": "Embedded",
+								"data": 
+								{
+									"StaticMaterialPassDef": [
+										{
+											"name": "shader",
+											"type": "Link",
+											"data": "0x172EF0B2"
+										}, 
+										{
+											"name": "blendEnable",
+											"type": "Bool",
+											"data": true
+										}, 
+										{
+											"name": "srcColorBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "srcAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "dstColorBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}, 
+										{
+											"name": "dstAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}
+									]
+								}
+							}
+						]
+					}
+				}, 
+				{
+					"name": "childTechniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialChildTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "transition"
+							}, 
+							{
+								"name": "parentName",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "shaderMacros",
+								"type": "Map",
+								"keytype": "String",
+								"valuetype": "String",
+								"data": [
+									{
+										"keydata": "TRANSITION",
+										"valuedata": "1"
+									}
+								]
+							}
+						]
+					}
+				}
+			]
+		},
+		"Characters/Ahri/Skins/Skin27/Materials/Fox_inst": 
+		{
+			"StaticMaterialDef": [
+				{
+					"name": "name",
+					"type": "String",
+					"data": "Characters/Ahri/Skins/Skin27/Materials/Fox_inst"
+				}, 
+				{
+					"name": "defaultTechnique",
+					"type": "String",
+					"data": "normal"
+				}, 
+				{
+					"name": "samplerValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "AlphaMask_Fresnel"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Shared/Materials/white.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Diffuse_Texture"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Fox_TX_CM.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_01"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Fox_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Mask"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Fox_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_02"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Fox_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_03"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Fox_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						]
+					}
+				}, 
+				{
+					"name": "paramValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Fresnel_Size"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 0.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Alpha_Bias"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale01"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Fresnel_Color"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.196078435, 0.400000006, 0.631372571, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Panning_Noise_Color"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.0, 1.0, 0.917647064, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control01"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale02"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control02"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									-0.100000001, 0.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale03"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control03"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.100000001, 0.300000012, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "BloomIntensity"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									2.0, 0.0, 0.0, 0.0
+								]
+							}
+						]
+					}
+				}, 
+				{
+					"name": "switches",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialSwitchDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "INVERT_FRESNEL"
+							}
+						]
+					}
+				}, 
+				{
+					"name": "shaderMacros",
+					"type": "Map",
+					"keytype": "String",
+					"valuetype": "String",
+					"data": [
+						{
+							"keydata": "NUM_BLEND_WEIGHTS",
+							"valuedata": "4"
+						}
+					]
+				}, 
+				{
+					"name": "techniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "passes",
+								"type": "Container",
+								"containertype": "Embedded",
+								"data": 
+								{
+									"StaticMaterialPassDef": [
+										{
+											"name": "shader",
+											"type": "Link",
+											"data": "0x4B02128E"
+										}, 
+										{
+											"name": "blendEnable",
+											"type": "Bool",
+											"data": true
+										}, 
+										{
+											"name": "srcColorBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "srcAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "dstColorBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}, 
+										{
+											"name": "dstAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}
+									]
+								}
+							}
+						]
+					}
+				}, 
+				{
+					"name": "childTechniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialChildTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "transition"
+							}, 
+							{
+								"name": "parentName",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "shaderMacros",
+								"type": "Map",
+								"keytype": "String",
+								"valuetype": "String",
+								"data": [
+									{
+										"keydata": "TRANSITION",
+										"valuedata": "1"
+									}
+								]
+							}
+						]
+					}
+				}
+			]
+		},
+		"Characters/Ahri/Skins/Skin27/Materials/SingleTailPanning_inst": 
+		{
+			"StaticMaterialDef": [
+				{
+					"name": "name",
+					"type": "String",
+					"data": "Characters/Ahri/Skins/Skin27/Materials/SingleTailPanning_inst"
+				}, 
+				{
+					"name": "defaultTechnique",
+					"type": "String",
+					"data": "normal"
+				}, 
+				{
+					"name": "samplerValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Diffuse_Texture"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tail_TX_CM.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_01"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tail_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Mask"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tail_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressU",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressV",
+								"type": "UInt32",
+								"data": 1
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_02"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tail_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						],
+						"StaticMaterialShaderSamplerDef": [
+							{
+								"name": "samplerName",
+								"type": "String",
+								"data": "Scroll_03"
+							}, 
+							{
+								"name": "textureName",
+								"type": "String",
+								"data": "ASSETS/Characters/Ahri/Skins/Skin27/Ahri_Skin27_Tail_MAT.PIE_C_10_16.dds"
+							}, 
+							{
+								"name": "addressW",
+								"type": "UInt32",
+								"data": 1
+							}
+						]
+					}
+				}, 
+				{
+					"name": "paramValues",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Panning_Noise_Color"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.0901960805, 0.247058824, 0.282352954, 1.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale01"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control01"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.0, 0.100000001, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale02"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control02"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "Texture_UV_Scale03"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									1.0, 1.0, 0.0, 0.0
+								]
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "ScrollTexture_Control03"
+							}
+						],
+						"StaticMaterialShaderParamDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "BloomIntensity"
+							}, 
+							{
+								"name": "value",
+								"type": "Vector4",
+								"data": [
+									0.5, 0.0, 0.0, 0.0
+								]
+							}
+						]
+					}
+				}, 
+				{
+					"name": "shaderMacros",
+					"type": "Map",
+					"keytype": "String",
+					"valuetype": "String",
+					"data": [
+						{
+							"keydata": "NUM_BLEND_WEIGHTS",
+							"valuedata": "4"
+						}
+					]
+				}, 
+				{
+					"name": "techniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "passes",
+								"type": "Container",
+								"containertype": "Embedded",
+								"data": 
+								{
+									"StaticMaterialPassDef": [
+										{
+											"name": "shader",
+											"type": "Link",
+											"data": "Shaders/SkinnedMesh/MultiMask_Panner_Bloom"
+										}, 
+										{
+											"name": "blendEnable",
+											"type": "Bool",
+											"data": true
+										}, 
+										{
+											"name": "srcColorBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "srcAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 6
+										}, 
+										{
+											"name": "dstColorBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}, 
+										{
+											"name": "dstAlphaBlendFactor",
+											"type": "UInt32",
+											"data": 7
+										}
+									]
+								}
+							}
+						]
+					}
+				}, 
+				{
+					"name": "childTechniques",
+					"type": "Container",
+					"containertype": "Embedded",
+					"data": 
+					{
+						"StaticMaterialChildTechniqueDef": [
+							{
+								"name": "name",
+								"type": "String",
+								"data": "transition"
+							}, 
+							{
+								"name": "parentName",
+								"type": "String",
+								"data": "normal"
+							}, 
+							{
+								"name": "shaderMacros",
+								"type": "Map",
+								"keytype": "String",
+								"valuetype": "String",
+								"data": [
+									{
+										"keydata": "TRANSITION",
+										"valuedata": "1"
+									}
+								]
+							}
+						]
+					}
+				}, 
+				{
+					"name": "dynamicMaterial",
+					"type": "Pointer",
+					"DynamicMaterialDef": [
+						{
+							"name": "parameters",
+							"type": "Container",
+							"containertype": "Embedded",
+							"data": 
+							{
+								"DynamicMaterialParameterDef": [
+									{
+										"name": "name",
+										"type": "String",
+										"data": "Panning_Noise_Color"
+									}, 
+									{
+										"name": "enabled",
+										"type": "Bool",
+										"data": false
+									}, 
+									{
+										"name": "driver",
+										"type": "Pointer",
+										"ColorGraphMaterialDriver": [
+											{
+												"name": "driver",
+												"type": "Pointer",
+												"LerpMaterialDriver": [
+													{
+														"name": "mBoolDriver",
+														"type": "Pointer",
+														"IsDeadDynamicMaterialBoolDriver": [
+														]
+													}, 
+													{
+														"name": "mTurnOnTimeSec",
+														"type": "Float32",
+														"data": 2.0
+													}, 
+													{
+														"name": "mTurnOffTimeSec",
+														"type": "Float32",
+														"data": 0.0
+													}
+												]
+											}, 
+											{
+												"name": "colors",
+												"type": "Embedded",
+												"VfxAnimatedColorVariableData": [
+													{
+														"name": "times",
+														"type": "Container",
+														"containertype": "Float32",
+														"data": [
+															0.0, 0.551666677
+														]
+													}, 
+													{
+														"name": "values",
+														"type": "Container",
+														"containertype": "Vector4",
+														"data": [
+															[
+																1.0, 0.474509805, 0.172549024, 1.0
+															],
+															[
+																0.0, 0.0, 0.0, 0.0
+															]
+														]
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		}
+	}
+}
