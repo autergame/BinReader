@@ -68,7 +68,7 @@ int addhash(HashTable* map, char* filename)
     FILE* file = fopen(filename, "rb");
     if (!file)
     {
-        printf("ERROR: cannot read file \"%s\".", filename);
+        printf("ERROR: cannot read file \"%s\".\n", filename);
         scanf("press enter to exit.");
         return 1;
     }
@@ -912,7 +912,7 @@ int main(int argc, char** argv)
         FILE* file = fopen(argv[2], "rb");
         if (!file)
         {
-            printf("ERROR: cannot read file \"%s\".", argv[2]);
+            printf("ERROR: cannot read file \"%s\".\n", argv[2]);
             scanf("press enter to exit.");
             return 1;
         }
@@ -935,6 +935,7 @@ int main(int argc, char** argv)
         fseek(file, 0, SEEK_SET);
         char* fp = (char*)malloc(fsize + 1);
         fread(fp, fsize, 1, file);
+        fp[fsize] = '\0';
         fclose(file);
 
         cJSON* root = cJSON_CreateObject();
@@ -1097,6 +1098,7 @@ int main(int argc, char** argv)
         fseek(file, 0, SEEK_SET);
         char* fp = (char*)malloc(fsize + 1);
         fread(fp, fsize, 1, file);
+        fp[fsize] = '\0';
         fclose(file);
 
         cJSON* obj, *obje;
