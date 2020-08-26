@@ -89,12 +89,6 @@ int addhash(HashTable* map, char* filename)
     return 0;
 }
 
-void memfread(void* buf, size_t bytes, char** membuf)
-{
-    memcpy(buf, *membuf, bytes);
-    *membuf += bytes;
-}
-
 typedef struct charv
 {
     char* data;
@@ -109,6 +103,12 @@ void memfwrite(char* buf, size_t bytes, charv* membuf)
     membuf->data = oblock;
     membuf->data -= membuf->lenght;
     membuf->lenght += bytes;
+}
+
+void memfread(void* buf, size_t bytes, char** membuf)
+{
+    memcpy(buf, *membuf, bytes);
+    *membuf += bytes;
 }
 
 typedef enum Type
