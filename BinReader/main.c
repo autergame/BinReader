@@ -1014,7 +1014,7 @@ int main(int argc, char** argv)
             entry->itemsize = fieldcount;
             entry->name = entryTypes[i];
             entry->items = (Field**)calloc(fieldcount, sizeof(Field*));
-            for (uint16_t i = 0; i < fieldcount; i++)
+            for (uint16_t o = 0; o < fieldcount; o++)
             {
                 uint32_t name = 0;
                 memfread(&name, 4, &fp);
@@ -1025,7 +1025,7 @@ int main(int argc, char** argv)
                 Field* fieldtmp = (Field*)calloc(1, sizeof(Field));
                 fieldtmp->key = name;
                 fieldtmp->value = readvaluebytype(type, hasht, &fp);
-                entry->items[i] = fieldtmp;
+                entry->items[o] = fieldtmp;
             }
 
             void* ptr = calloc(1, sizeof(uint32_t));
