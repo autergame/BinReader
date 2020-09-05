@@ -5,12 +5,12 @@ Help From: https://github.com/moonshadow565/ritobin, https://github.com/LoL-Fant
 
 How to use: 
 
-bin to json:
+decode bin to json:
 ```
 BinReader.exe -d skin0.bin
 ```
 
-json to bin: 
+encode json to bin: 
 ```
 BinReader.exe -e skin0.json
 ```
