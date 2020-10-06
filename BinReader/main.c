@@ -955,7 +955,7 @@ int main(int argc, char** argv)
             memfread(&Signature, 4, &fp);
             if (memcmp(&Signature, "PROP", 4) != 0)
             {
-                printf("skn has no valid signature\n");
+                printf("bin has no valid signature\n");
                 scanf("press enter to exit.");
                 return 1;
             }
@@ -963,7 +963,7 @@ int main(int argc, char** argv)
         }
         if (memcmp(&Signature, "PROP", 4) != 0)
         {
-            printf("skn has no valid signature\n");
+            printf("bin has no valid signature\n");
             scanf("press enter to exit.");
             return 1;
         }
