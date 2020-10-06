@@ -1189,12 +1189,11 @@ int main(int argc, char** argv)
 
         for (uint32_t i = 0; i < entriesMap->itemsize; i++)
         {
-            uint32_t entryLength = 0;
+            uint32_t entryLength = 4 + 2;
             PointerOrEmbed* pe = (PointerOrEmbed*)entriesMap->items[i]->value->data;
             uint32_t entryKeyHash = *(uint32_t*)entriesMap->items[i]->key->data;
             for (uint16_t k = 0; k < pe->itemsize; k++)
                 entryLength += getsize(pe->items[k]->value) + 4 + 1;
-            entryLength += 4 + 2;
 
             memfwrite((char*)&entryLength, 4, str);
             memfwrite((char*)&entryKeyHash, 4, str);
