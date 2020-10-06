@@ -1071,7 +1071,7 @@ int main(int argc, char** argv)
                 cJSON_AddItemToArray(entryarr, entryobj);
             }
         }
-        printf("finised json file.\n");
+        printf("finised creating json file.\n");
         printf("writing to file.\n");
         file = fopen(name, "wb");
         if (!file)
@@ -1212,7 +1212,7 @@ int main(int argc, char** argv)
             }
         }
 
-        printf("finised json file.\n");
+        printf("finised creating bin file.\n");
         printf("writing to file.\n");
         file = fopen(name, "wb");
         if (!file)
