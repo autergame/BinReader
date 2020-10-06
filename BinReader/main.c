@@ -196,8 +196,9 @@ typedef struct PointerOrEmbed
 
 typedef struct Option 
 {
+    uint8_t count;
     Type valueType;
-    BinField* item;
+    BinField** items;
 } Option;
 
 typedef struct Map
@@ -328,7 +329,7 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
                 jsonarr = cJSON_CreateObject();
             cJSON_AddItemToObject(json, "containertype", cJSON_CreateString(Type_strings[cs->valueType]));
             cJSON_AddItemToObject(json, strdata, jsonarr);
-            for (size_t i = 0; i < cs->itemsize; i++)
+            for (uint32_t i = 0; i < cs->itemsize; i++)
                 getvaluefromtype(cs->items[i], hasht, jsonarr, "data");
             break;
         }
@@ -345,7 +346,7 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
             }
             else
                 cJSON_AddItemToObject(json, hashtostr(hasht, pe->name), jsonarr);
-            for (size_t i = 0; i < pe->itemsize; i++)
+            for (uint16_t i = 0; i < pe->itemsize; i++)
             {
                 cJSON* jsonobj = cJSON_CreateObject();
                 cJSON_AddItemToObject(jsonobj, "name", cJSON_CreateString(hashtostr(hasht, pe->items[i]->key)));
@@ -358,8 +359,11 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
         case OPTION:
         {
             Option* op = (Option*)value->data;
+            cJSON* jsonarr = cJSON_CreateArray();
             cJSON_AddItemToObject(json, "optiontype", cJSON_CreateString(Type_strings[op->valueType]));
-            getvaluefromtype(op->item, hasht, json, "data");
+            cJSON_AddItemToObject(json, strdata, jsonarr);
+            for (uint8_t i = 0; i < op->count; i++)
+                getvaluefromtype(op->items[i], hasht, jsonarr, "data");
             break;
         }
         case MAP:
@@ -369,7 +373,7 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
             cJSON_AddItemToObject(json, "keytype", cJSON_CreateString(Type_strings[mp->keyType]));
             cJSON_AddItemToObject(json, "valuetype", cJSON_CreateString(Type_strings[mp->valueType]));
             cJSON_AddItemToObject(json, strdata, jsonarr);
-            for (size_t i = 0; i < mp->itemsize; i++)
+            for (uint32_t i = 0; i < mp->itemsize; i++)
             {
                 cJSON* jsonobj = cJSON_CreateObject();
                 getvaluefromtype(mp->items[i]->key, hasht, jsonobj, "keydata");
@@ -492,9 +496,13 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
         }
         case OPTION:
         {
+            cJSON* op = cJSON_GetObjectItem(json, "data");
             Option* tmpo = (Option*)calloc(1, sizeof(Option));
             tmpo->valueType = findtypebystring((char*)cJSON_GetObjectItem(json, "optiontype")->value);
-            tmpo->item = getvaluefromjson(tmpo->valueType, json, 1);
+            tmpo->count = (uint8_t)cJSON_GetArraySize(op);
+            tmpo->items = (BinField**)calloc(tmpo->count, sizeof(BinField*));
+            for (i = 0, obj = op->child; obj != NULL; obj = obj->next, i++)
+                tmpo->items[i] = getvaluefromjson(tmpo->valueType, obj, 0);
             result->data = tmpo;
             break;
         }
@@ -652,12 +660,13 @@ BinField* readvaluebytype(uint8_t typeidbin, HashTable* hasht, char** fp)
             uint8_t type = 0;
             uint8_t count = 0;
             Option* tmpo = (Option*)calloc(1, sizeof(Option));
-            tmpo->item = (BinField*)calloc(1, sizeof(BinField));
             memfread(&type, 1, fp);
             memfread(&count, 1, fp);
+            tmpo->count = count;
             tmpo->valueType = uinttotype(type);
-            if (count != 0) 
-                tmpo->item = readvaluebytype(tmpo->valueType, hasht, fp);
+            tmpo->items = (BinField**)calloc(count, sizeof(BinField*));
+            for (uint8_t i = 0; i < count; i++)
+                tmpo->items[i] = readvaluebytype(tmpo->valueType, hasht, fp);
             result->data = tmpo;
             break;
         }
@@ -753,8 +762,13 @@ uint32_t getsize(BinField* value)
             break;
         }
         case OPTION:
-            size = 2 + getsize(((Option*)value->data)->item);
+        {
+            size = 2;
+            Option* op = (Option*)value->data;
+            for (uint8_t i = 0; i < op->count; i++)
+                size += getsize(op->items[i]);
             break;
+        }
         case MAP:
         {
             size = 1 + 1 + 4 + 4;
@@ -853,16 +867,9 @@ void writevaluebybin(BinField* value, charv* str)
             Option* op = (Option*)value->data;
             uint8_t type = typetouint(op->valueType);
             memfwrite(&type, 1, str);
-            if (op->item != NULL)
-            {
-                memfwrite(&count, 1, str);
-                writevaluebybin(op->item, str);
-            }
-            else
-            {
-                count = 0;
-                memfwrite(&count, 1, str);
-            }
+            memfwrite(&op->count, 1, str);
+            for(uint8_t i = 0; i < op->count; i++)
+                writevaluebybin(op->items[i], str);
             break;
         }
         case MAP:
