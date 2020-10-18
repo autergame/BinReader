@@ -10,6 +10,130 @@ uint32_t FNV1Hash(char* str)
     return Hash;
 }
 
+uint64_t PRIME1 = 0x9E3779B185EBCA87ULL;
+uint64_t PRIME2 = 0xC2B2AE3D27D4EB4FULL;
+uint64_t PRIME3 = 0x165667B19E3779F9ULL;
+uint64_t PRIME4 = 0x85EBCA77C2B2AE63ULL;
+uint64_t PRIME5 = 0x27D4EB2F165667C5ULL;
+uint64_t xxread8(const void* memPtr)
+{
+    uint8_t val;
+    memcpy(&val, memPtr, 1);
+    return val;
+}
+uint64_t xxread32(const void* memPtr)
+{
+    uint32_t val;
+    memcpy(&val, memPtr, 4);
+    return val;
+}
+uint64_t xxread64(const void* memPtr)
+{
+    uint64_t val;
+    memcpy(&val, memPtr, 8);
+    return val;
+}
+uint64_t XXH_rotl64(uint64_t x, int r)
+{
+    return ((x << r) | (x >> (64 - r)));
+}
+uint64_t XXHash(const uint8_t* input, size_t len)
+{
+    uint64_t h64;
+    const uint8_t* bEnd = input + len;
+
+    if (len >= 32) {
+        const uint8_t* const limit = bEnd - 32;
+        uint64_t v1 = PRIME1 + PRIME2;
+        uint64_t v2 = PRIME2;
+        uint64_t v3 = 0;
+        uint64_t v4 = 0 - PRIME1;
+
+        do
+        {
+            v1 += xxread64(input) * PRIME2;
+            v1 = XXH_rotl64(v1, 31);
+            v1 *= PRIME1;
+            input += 8;
+            v2 += xxread64(input) * PRIME2;
+            v2 = XXH_rotl64(v2, 31);
+            v2 *= PRIME1;
+            input += 8;
+            v3 += xxread64(input) * PRIME2;
+            v3 = XXH_rotl64(v3, 31);
+            v3 *= PRIME1;
+            input += 8;
+            v4 += xxread64(input) * PRIME2;
+            v4 = XXH_rotl64(v4, 31);
+            v4 *= PRIME1;
+            input += 8;
+        } while (input <= limit);
+
+        h64 = XXH_rotl64(v1, 1) + XXH_rotl64(v2, 7) + XXH_rotl64(v3, 12) + XXH_rotl64(v4, 18);
+
+        v1 *= PRIME2;
+        v1 = XXH_rotl64(v1, 31);
+        v1 *= PRIME1;
+        h64 ^= v1;
+        h64 = h64 * PRIME1 + PRIME4;
+
+        v2 *= PRIME2;
+        v2 = XXH_rotl64(v2, 31);
+        v2 *= PRIME1;
+        h64 ^= v2;
+        h64 = h64 * PRIME1 + PRIME4;
+
+        v3 *= PRIME2;
+        v3 = XXH_rotl64(v3, 31);
+        v3 *= PRIME1;
+        h64 ^= v3;
+        h64 = h64 * PRIME1 + PRIME4;
+
+        v4 *= PRIME2;
+        v4 = XXH_rotl64(v4, 31);
+        v4 *= PRIME1;
+        h64 ^= v4;
+        h64 = h64 * PRIME1 + PRIME4;
+    }
+    else {
+        h64 = PRIME5;
+    }
+
+    h64 += (uint64_t)len;
+
+    while (input + 8 <= bEnd)
+    {
+        uint64_t k1 = xxread64(input);
+        k1 *= PRIME2;
+        k1 = XXH_rotl64(k1, 31);
+        k1 *= PRIME1;
+        h64 ^= k1;
+        h64 = XXH_rotl64(h64, 27) * PRIME1 + PRIME4;
+        input += 8;
+    }
+
+    if (input + 4 <= bEnd)
+    {
+        h64 ^= (uint64_t)(xxread32(input)) * PRIME1;
+        h64 = XXH_rotl64(h64, 23) * PRIME2 + PRIME3;
+        input += 4;
+    }
+
+    while (input < bEnd)
+    {
+        h64 ^= xxread8(input) * PRIME5;
+        h64 = XXH_rotl64(h64, 11) * PRIME1;
+        input += 1;
+    }
+
+    h64 ^= h64 >> 33;
+    h64 *= PRIME2;
+    h64 ^= h64 >> 29;
+    h64 *= PRIME3;
+    h64 ^= h64 >> 32;
+    return h64;
+}
+
 struct node
 {
     uint32_t key;
@@ -113,43 +237,35 @@ void memfread(void* buf, size_t bytes, char** membuf)
 
 typedef enum Type
 {
-    NONE = 0, BOOL = 1, 
-    SInt8 = 2, UInt8 = 3,
-    SInt16 = 4, UInt16 = 5,
-    SInt32 = 6, UInt32 = 7,
-    SInt64 = 8, UInt64 = 9,
-    Float32 = 10, VEC2 = 11,
-    VEC3 = 12, VEC4 = 13, 
-    MTX44 = 14, RGBA = 15,
-    STRING = 16, HASH = 17, 
-    CONTAINER = 18, STRUCT = 19,
-    POINTER = 20, EMBEDDED = 21,
-    LINK = 22, OPTION = 23,
-    MAP = 24, FLAG = 25
+    NONE, BOOL, SInt8,
+    UInt8, SInt16, UInt16,
+    SInt32, UInt32, SInt64,
+    UInt64, Float32, VEC2,
+    VEC3, VEC4, MTX44,
+    RGBA, STRING, HASH,
+    WADENTRYLINK, CONTAINER, STRUCT,
+    POINTER, EMBEDDED, LINK,
+    OPTION, MAP, FLAG
 } Type;
 
 static const char* Type_strings[] = {
     "None", "Bool", "SInt8", "UInt8", "SInt16", "UInt16", "SInt32", "UInt32", "SInt64",
     "UInt64", "Float32", "Vector2", "Vector3", "Vector4", "Matrix4x4", "RGBA", "String", 
-    "Hash", "Container", "Struct", "Pointer", "Embedded", "Link", "Option", "Map", "Flag"
+    "Hash", "WadEntryLink", "Container", "Struct", "Pointer", "Embedded", "Link", "Option", "Map", "Flag"
 };
 
+static uint8_t flag = 128;
 Type uinttotype(uint8_t type)
 {
-    if (type & 0x80) {
-        type &= 0x7F;
-        type += 18;
-    }
+    if ((type & flag) == flag)
+        type = (type - flag) + CONTAINER;
     return (Type)type;
 }
-
 uint8_t typetouint(Type type)
 {
     uint8_t raw = type;
-    if (raw >= 18) {
-        raw -= 18;
-        raw |= 0x80;
-    }
+    if (raw >= CONTAINER)
+        raw = (raw - CONTAINER) + flag;
     return raw;
 }
 
@@ -215,7 +331,7 @@ char* hashtostr(HashTable* hasht, uint32_t value)
     if (strvalue == NULL)
     {
         strvalue = (char*)calloc(10, 1);
-        sprintf(strvalue, "0x%08X", value);
+        sprintf(strvalue, "0x%08" PRIX32, value);
     }
     return strvalue;
 }
@@ -224,9 +340,19 @@ uint32_t hashfromstring(char* string)
 {
     uint32_t hash = 0;
     if (string[0] == '0' && string[1] == 'x')
-        sscanf(string, "0x%08X", &hash);
+        sscanf(string, "0x%08" PRIX32, &hash);
     else
         hash = FNV1Hash(string);
+    return hash;
+}
+
+uint64_t hashfromstringxx(char* string)
+{
+    uint64_t hash = 0;
+    if (string[0] == '0' && string[1] == 'x')
+        sscanf(string, "0x%016" PRIX64, &hash);
+    else
+        hash = XXHash(string, strlen(string));
     return hash;
 }
 
@@ -320,12 +446,19 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
         case LINK:
             cJSON_AddItemToObject(json, strdata, cJSON_CreateString(hashtostr(hasht, (uint32_t)value->data)));
             break;
+        case WADENTRYLINK:
+        {
+            char* strvalue = (char*)calloc(10, 1);
+            sprintf(strvalue, "0x%016" PRIX64, (uint64_t)value->data);
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateString(strvalue));
+            break;
+        }
         case CONTAINER:
         case STRUCT:
         {
             cJSON* jsonarr = cJSON_CreateArray();
             ContainerOrStruct* cs = (ContainerOrStruct*)value->data;
-            if (cs->valueType >= 18 && cs->valueType <= 21 || cs->valueType == MAP)
+            if (cs->valueType >= CONTAINER && cs->valueType <= EMBEDDED || cs->valueType == MAP)
                 jsonarr = cJSON_CreateObject();
             cJSON_AddItemToObject(json, "containertype", cJSON_CreateString(Type_strings[cs->valueType]));
             cJSON_AddItemToObject(json, strdata, jsonarr);
@@ -458,6 +591,12 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
             result->data = data;
             break;
         }
+        case WADENTRYLINK:
+        {
+            uint64_t* data = (uint64_t*)calloc(1, 8);
+            *data = hashfromstringxx((char*)jdata->value);
+            result->data = data;
+        }
         case CONTAINER:
         case STRUCT:
         {
@@ -521,9 +660,9 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
                 Pair* pairtmp = (Pair*)calloc(1, sizeof(Pair));
                 key = cJSON_GetObjectItem(obj, "keydata");
                 value = cJSON_GetObjectItem(obj, "valuedata");
-                if (tmpmap->keyType >= 18 && tmpmap->keyType <= 21 || tmpmap->keyType == MAP)
+                if (tmpmap->keyType >= CONTAINER && tmpmap->keyType <= EMBEDDED || tmpmap->keyType == MAP)
                     key = key->child;
-                if (tmpmap->valueType >= 18 && tmpmap->valueType <= 21 || tmpmap->valueType == MAP)
+                if (tmpmap->valueType >= CONTAINER && tmpmap->valueType <= EMBEDDED || tmpmap->valueType == MAP)
                     value = value->child;
                 pairtmp->key = getvaluefromjson(tmpmap->keyType, key, 0);
                 pairtmp->value = getvaluefromjson(tmpmap->valueType, value, 0);
@@ -561,6 +700,7 @@ BinField* readvaluebytype(uint8_t typeidbin, HashTable* hasht, char** fp)
             break;
         case SInt64:
         case UInt64:
+        case WADENTRYLINK:
             memfread(&result->data, 8, fp);
             break;
         case VEC2:
@@ -725,6 +865,7 @@ uint32_t getsize(BinField* value)
         case VEC2:
         case SInt64:
         case UInt64:
+        case WADENTRYLINK:
             size = 8;
             break;
         case VEC3:
@@ -806,6 +947,7 @@ void writevaluebybin(BinField* value, charv* str)
         case VEC2:
         case SInt64:
         case UInt64:
+        case WADENTRYLINK:
             memfwrite(value->data, 8, str);
             break;
         case VEC3:
