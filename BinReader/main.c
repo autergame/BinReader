@@ -254,6 +254,10 @@ static const char* Type_strings[] = {
     "Hash", "WadEntryLink", "Container", "Struct", "Pointer", "Embedded", "Link", "Option", "Map", "Flag"
 };
 
+static const int Type_size[] = {
+    0, 1, 1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 12, 16, 64, 4, 0, 4, 8, 0, 0, 0, 0, 4, 0, 0, 1
+};
+
 Type uinttotype(uint8_t type)
 {
     if (type & 0x80)
@@ -363,34 +367,34 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
             break;
         case FLAG:
         case BOOL:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateBool((uint8_t)value->data));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateBool(*(uint8_t*)value->data));
             break;
         case SInt8:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jSInt8));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jSInt8));
             break;
         case UInt8:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jUInt8));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jUInt8));
             break;
         case SInt16:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jSInt16));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jSInt16));
             break;
         case UInt16:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jUInt16));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jUInt16));
             break;
         case SInt32:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jSInt32));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jSInt32));
             break;
         case UInt32:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jUInt32));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jUInt32));
             break;
         case SInt64:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jSInt64));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jSInt64));
             break;
         case UInt64:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jUInt64));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jUInt64));
             break;
         case Float32:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(&value->data, jFloat32));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateNumber(value->data, jFloat32));
             break;
         case VEC2:
         {
@@ -442,12 +446,12 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
             break;
         case HASH:
         case LINK:
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateString(hashtostr(hasht, (uint32_t)value->data)));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateString(hashtostr(hasht, *(uint32_t*)value->data)));
             break;
         case WADENTRYLINK:
         {
             char* strvalue = (char*)calloc(19, 1);
-            sprintf(strvalue, "0x%016" PRIX64, (uint64_t)value->data);
+            sprintf(strvalue, "0x%016" PRIX64, *(uint64_t*)value->data);
             cJSON_AddItemToObject(json, strdata, cJSON_CreateString(strvalue));
             break;
         }
@@ -673,166 +677,118 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
     }
     return result;
 }
-
 BinField* readvaluebytype(uint8_t typeidbin, HashTable* hasht, char** fp)
 {
     BinField* result = (BinField*)calloc(1, sizeof(BinField));
     result->typebin = uinttotype(typeidbin);
-    switch (result->typebin)
+    int size = Type_size[result->typebin];
+    if (size != 0)
     {
-        case FLAG:
-        case BOOL:
-        case SInt8:
-        case UInt8:
-            memfread(&result->data, 1, fp);
-            break;
-        case SInt16:
-        case UInt16:
-            memfread(&result->data, 2, fp);
-            break;
-        case LINK:
-        case HASH:
-        case SInt32:
-        case UInt32:
-        case Float32:
-            memfread(&result->data, 4, fp);
-            break;
-        case SInt64:
-        case UInt64:
-        case WADENTRYLINK:
-            memfread(&result->data, 8, fp);
-            break;
-        case VEC2:
+        void* data = (void*)malloc(size);
+        memfread(data, size, fp);
+        result->data = data;
+    }
+    else
+    {
+        switch (result->typebin)
         {
-            float* data = (float*)calloc(2, 4);
-            memfread(data, 4 * 2, fp);
-            result->data = data;
-            break;
-        }
-        case VEC3:
-        {
-            float* data = (float*)calloc(3, 4);
-            memfread(data, 4 * 3, fp);
-            result->data = data;
-            break;
-        }       
-        case VEC4:
-        {
-            float* data = (float*)calloc(4, 4);
-            memfread(data, 4 * 4, fp);
-            result->data = data;
-            break;
-        }
-        case MTX44:
-        {
-            float* data = (float*)calloc(16, 4);
-            memfread(data, 4 * 16, fp);
-            result->data = data;
-            break;
-        }
-        case RGBA:
-        {
-            uint8_t* data = (uint8_t*)calloc(4, 1);
-            memfread(data, 4, fp);
-            result->data = data;
-            break;
-        }
-        case STRING:
-        {
-            uint16_t stringlength = 0;
-            memfread(&stringlength, 2, fp);
-            char* stringb = (char*)calloc(stringlength + 1, 1);
-            memfread(stringb, (size_t)stringlength, fp);
-            stringb[stringlength] = '\0';
-            result->data = stringb;
-            insertHashTable(hasht, FNV1Hash(stringb), stringb);
-            break;
-        }       
-        case STRUCT:
-        case CONTAINER:
-        {
-            uint8_t type = 0;
-            uint32_t size = 0;
-            uint32_t count = 0;
-            ContainerOrStruct* tmpcs = (ContainerOrStruct*)calloc(1, sizeof(ContainerOrStruct));
-            memfread(&type, 1, fp);
-            memfread(&size, 4, fp);
-            memfread(&count, 4, fp);
-            tmpcs->itemsize = count;
-            tmpcs->valueType = uinttotype(type);
-            tmpcs->items = (BinField**)calloc(count, sizeof(BinField*));
-            for (uint32_t i = 0; i < count; i++)
-                tmpcs->items[i] = readvaluebytype(tmpcs->valueType, hasht, fp);
-            result->data = tmpcs;
-            break;
-        }
-        case POINTER:
-        case EMBEDDED:
-        {
-            uint32_t size = 0;
-            uint16_t count = 0;
-            PointerOrEmbed* tmppe = (PointerOrEmbed*)calloc(1, sizeof(PointerOrEmbed));
-            memfread(&tmppe->name, 4, fp);
-            if (tmppe->name == 0)
+            case STRING:
             {
+                uint16_t stringlength = 0;
+                memfread(&stringlength, 2, fp);
+                char* stringb = (char*)calloc(stringlength + 1, 1);
+                memfread(stringb, (size_t)stringlength, fp);
+                stringb[stringlength] = '\0';
+                result->data = stringb;
+                insertHashTable(hasht, FNV1Hash(stringb), stringb);
+                break;
+            }
+            case STRUCT:
+            case CONTAINER:
+            {
+                uint8_t type = 0;
+                uint32_t size = 0;
+                uint32_t count = 0;
+                ContainerOrStruct* tmpcs = (ContainerOrStruct*)calloc(1, sizeof(ContainerOrStruct));
+                memfread(&type, 1, fp);
+                memfread(&size, 4, fp);
+                memfread(&count, 4, fp);
+                tmpcs->itemsize = count;
+                tmpcs->valueType = uinttotype(type);
+                tmpcs->items = (BinField**)calloc(count, sizeof(BinField**));
+                for (uint32_t i = 0; i < count; i++)
+                    tmpcs->items[i] = readvaluebytype(tmpcs->valueType, hasht, fp);
+                result->data = tmpcs;
+                break;
+            }
+            case POINTER:
+            case EMBEDDED:
+            {
+                uint32_t size = 0;
+                uint16_t count = 0;
+                PointerOrEmbed* tmppe = (PointerOrEmbed*)calloc(1, sizeof(PointerOrEmbed));
+                memfread(&tmppe->name, 4, fp);
+                if (tmppe->name == 0)
+                {
+                    result->data = tmppe;
+                    break;
+                }
+                memfread(&size, 4, fp);
+                memfread(&count, 2, fp);
+                tmppe->itemsize = count;
+                tmppe->items = (Field**)calloc(count, sizeof(Field**));
+                for (uint16_t i = 0; i < count; i++)
+                {
+                    uint8_t type = 0;
+                    Field* tmpfield = (Field*)calloc(1, sizeof(Field));
+                    memfread(&tmpfield->key, 4, fp);
+                    memfread(&type, 1, fp);
+                    tmpfield->value = readvaluebytype(type, hasht, fp);
+                    tmppe->items[i] = tmpfield;
+                }
                 result->data = tmppe;
                 break;
             }
-            memfread(&size, 4, fp);
-            memfread(&count, 2, fp);
-            tmppe->itemsize = count;
-            tmppe->items = (Field**)calloc(count, sizeof(Field*));
-            for (uint16_t i = 0; i < count; i++)
+            case OPTION:
             {
                 uint8_t type = 0;
-                Field* tmpfield = (Field*)calloc(1, sizeof(Field));
-                memfread(&tmpfield->key, 4, fp);
+                uint8_t count = 0;
+                Option* tmpo = (Option*)calloc(1, sizeof(Option));
                 memfread(&type, 1, fp);
-                tmpfield->value = readvaluebytype(type, hasht, fp);
-                tmppe->items[i] = tmpfield;
+                memfread(&count, 1, fp);
+                tmpo->count = count;
+                tmpo->valueType = uinttotype(type);
+                tmpo->items = (BinField**)calloc(count, sizeof(BinField**));
+                for (uint8_t i = 0; i < count; i++)
+                    tmpo->items[i] = readvaluebytype(tmpo->valueType, hasht, fp);
+                result->data = tmpo;
+                break;
             }
-            result->data = tmppe;
-            break;  
-        }
-        case OPTION:
-        {
-            uint8_t type = 0;
-            uint8_t count = 0;
-            Option* tmpo = (Option*)calloc(1, sizeof(Option));
-            memfread(&type, 1, fp);
-            memfread(&count, 1, fp);
-            tmpo->count = count;
-            tmpo->valueType = uinttotype(type);
-            tmpo->items = (BinField**)calloc(count, sizeof(BinField*));
-            for (uint8_t i = 0; i < count; i++)
-                tmpo->items[i] = readvaluebytype(tmpo->valueType, hasht, fp);
-            result->data = tmpo;
-            break;
-        }
-        case MAP:
-        {
-            uint32_t size = 0;
-            uint8_t typek = 0;
-            uint8_t typev = 0;
-            uint32_t count = 0;
-            Map* tmpmap = (Map*)calloc(1, sizeof(Map));
-            memfread(&typek, 1, fp);
-            memfread(&typev, 1, fp);
-            memfread(&size, 4, fp);
-            memfread(&count, 4, fp);
-            tmpmap->itemsize = count;
-            tmpmap->keyType = uinttotype(typek);
-            tmpmap->valueType = uinttotype(typev);
-            tmpmap->items = (Pair**)calloc(count, sizeof(Pair*));
-            for (uint32_t i = 0; i < count; i++)
+            case MAP:
             {
-                Pair* pairtmp = (Pair*)calloc(1, sizeof(Pair));
-                pairtmp->key = readvaluebytype(tmpmap->keyType, hasht, fp);
-                pairtmp->value = readvaluebytype(tmpmap->valueType, hasht, fp);
-                tmpmap->items[i] = pairtmp;
+                uint32_t size = 0;
+                uint8_t typek = 0;
+                uint8_t typev = 0;
+                uint32_t count = 0;
+                Map* tmpmap = (Map*)calloc(1, sizeof(Map));
+                memfread(&typek, 1, fp);
+                memfread(&typev, 1, fp);
+                memfread(&size, 4, fp);
+                memfread(&count, 4, fp);
+                tmpmap->itemsize = count;
+                tmpmap->keyType = uinttotype(typek);
+                tmpmap->valueType = uinttotype(typev);
+                tmpmap->items = (Pair**)calloc(count, sizeof(Pair**));
+                for (uint32_t i = 0; i < count; i++)
+                {
+                    Pair* pairtmp = (Pair*)calloc(1, sizeof(Pair));
+                    pairtmp->key = readvaluebytype(tmpmap->keyType, hasht, fp);
+                    pairtmp->value = readvaluebytype(tmpmap->valueType, hasht, fp);
+                    tmpmap->items[i] = pairtmp;
+                }
+                result->data = tmpmap;
+                break;
             }
-            result->data = tmpmap;
-            break;
         }
     }
     return result;
@@ -840,82 +796,52 @@ BinField* readvaluebytype(uint8_t typeidbin, HashTable* hasht, char** fp)
 
 uint32_t getsize(BinField* value)
 {
-    uint32_t size = 0;
-    switch (value->typebin)
+    uint32_t size = Type_size[value->typebin];
+    if (size == 0)
     {
-        case FLAG:
-        case BOOL:
-        case SInt8:
-        case UInt8:
-            size = 1;
-            break;
-        case SInt16:
-        case UInt16:
-            size = 2;
-            break;
-        case LINK:
-        case HASH:
-        case RGBA:
-        case SInt32:
-        case UInt32:
-        case Float32:
-            size = 4;
-            break;
-        case VEC2:
-        case SInt64:
-        case UInt64:
-        case WADENTRYLINK:
-            size = 8;
-            break;
-        case VEC3:
-            size = 12;
-            break;
-        case VEC4:
-            size = 16;
-            break;
-        case MTX44:
-            size = 64;
-            break;
-        case STRING:
-            size = 2 + strlen((char*)value->data);
-            break;
-        case STRUCT:
-        case CONTAINER:
+        switch (value->typebin)
         {
-            size = 1 + 4 + 4;
-            ContainerOrStruct* cs = (ContainerOrStruct*)value->data;
-            for (uint32_t i = 0; i < cs->itemsize; i++)
-                size += getsize(cs->items[i]);
-            break;
-        }
-        case POINTER:
-        case EMBEDDED:
-        {
-            size = 4;
-            PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
-            if (pe->name != 0)
-            { 
-                size += 4 + 2;
-                for (uint16_t i = 0; i < pe->itemsize; i++)
-                  size += getsize(pe->items[i]->value) + 4 + 1;
+            case STRING:
+                size = 2 + strlen((char*)value->data);
+                break;
+            case STRUCT:
+            case CONTAINER:
+            {
+                size = 1 + 4 + 4;
+                ContainerOrStruct* cs = (ContainerOrStruct*)value->data;
+                for (uint32_t i = 0; i < cs->itemsize; i++)
+                    size += getsize(cs->items[i]);
+                break;
             }
-            break;
-        }
-        case OPTION:
-        {
-            size = 2;
-            Option* op = (Option*)value->data;
-            for (uint8_t i = 0; i < op->count; i++)
-                size += getsize(op->items[i]);
-            break;
-        }
-        case MAP:
-        {
-            size = 1 + 1 + 4 + 4;
-            Map* map = (Map*)value->data;
-            for (uint32_t i = 0; i < map->itemsize; i++)
-                size += getsize(map->items[i]->key) + getsize(map->items[i]->value);
-            break;
+            case POINTER:
+            case EMBEDDED:
+            {
+                size = 4;
+                PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
+                if (pe->name != 0)
+                {
+                    size += 4 + 2;
+                    for (uint16_t i = 0; i < pe->itemsize; i++)
+                        size += getsize(pe->items[i]->value) + 4 + 1;
+                }
+                break;
+            }
+            case OPTION:
+            {
+                size = 2;
+                Option* op = (Option*)value->data;
+                for (uint8_t i = 0; i < op->count; i++)
+                    size += getsize(op->items[i]);
+                break;
+            }
+            case MAP:
+            {
+                size = 1 + 1 + 4 + 4;
+                Map* map = (Map*)value->data;
+                for (uint32_t i = 0; i < map->itemsize; i++)
+                    size += getsize(map->items[i]->key) + getsize(map->items[i]->value);
+                break;
+            }
         }
     }
     return size;
@@ -1009,7 +935,7 @@ void writevaluebybin(BinField* value, charv* str)
             uint8_t type = typetouint(op->valueType);
             memfwrite(&type, 1, str);
             memfwrite(&op->count, 1, str);
-            for(uint8_t i = 0; i < op->count; i++)
+            for (uint8_t i = 0; i < op->count; i++)
                 writevaluebybin(op->items[i], str);
             break;
         }
