@@ -254,21 +254,19 @@ static const char* Type_strings[] = {
     "Hash", "WadEntryLink", "Container", "Struct", "Pointer", "Embedded", "Link", "Option", "Map", "Flag"
 };
 
-static uint8_t flag = 128;
 Type uinttotype(uint8_t type)
 {
-    if ((type & flag) == flag)
-        type = (type - flag) + CONTAINER;
+    if (type & 0x80)
+        type = (type - 0x80) + CONTAINER;
     return (Type)type;
 }
 uint8_t typetouint(Type type)
 {
     uint8_t raw = type;
     if (raw >= CONTAINER)
-        raw = (raw - CONTAINER) + flag;
+        raw = (raw - CONTAINER) + 0x80;
     return raw;
 }
-
 Type findtypebystring(char* sval)
 {
     Type result = NONE;
@@ -448,7 +446,7 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
             break;
         case WADENTRYLINK:
         {
-            char* strvalue = (char*)calloc(10, 1);
+            char* strvalue = (char*)calloc(19, 1);
             sprintf(strvalue, "0x%016" PRIX64, (uint64_t)value->data);
             cJSON_AddItemToObject(json, strdata, cJSON_CreateString(strvalue));
             break;
@@ -596,6 +594,7 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
             uint64_t* data = (uint64_t*)calloc(1, 8);
             *data = hashfromstringxx((char*)jdata->value);
             result->data = data;
+            break;
         }
         case CONTAINER:
         case STRUCT:
