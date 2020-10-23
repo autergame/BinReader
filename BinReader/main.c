@@ -618,12 +618,12 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
         {
             PointerOrEmbed* tmppe = (PointerOrEmbed*)calloc(1, sizeof(PointerOrEmbed));
             cJSON* pe = getobject ? json->child->next->next : json;
-            tmppe->name = hashfromstring(pe->string);
-            if (tmppe->name == 0)
+            if (pe == NULL)
             {
                 result->data = tmppe;
                 break;
             }
+            tmppe->name = hashfromstring(pe->string);
             tmppe->itemsize = (uint16_t)cJSON_GetArraySize(pe);
             tmppe->items = (Field**)calloc(tmppe->itemsize, sizeof(Field*));
             for (i = 0, obj = pe->child; obj != NULL; obj = obj->next, i++)
@@ -1178,6 +1178,12 @@ int main(int argc, char** argv)
         cJSON* obj, *obje;
         size_t i = 0, k = 0;
         cJSON* root = cJSON_ParseWithLength(fp, fsize);
+        if (root == NULL)
+        {
+            printf("ERROR: cannot read file \"%s\" %s.", argv[2], cJSON_GetErrorPtr());
+            scanf("press enter to exit.");
+            return 1;
+        }
         char* Signature = (char*)cJSON_GetObjectItem(root, "Signature")->value;
         uint32_t Version = *(uint32_t*)cJSON_GetObjectItem(root, "Version")->value;     
 
