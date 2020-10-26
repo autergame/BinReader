@@ -663,9 +663,9 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
                 Pair* pairtmp = (Pair*)calloc(1, sizeof(Pair));
                 key = cJSON_GetObjectItem(obj, "keydata");
                 value = cJSON_GetObjectItem(obj, "valuedata");
-                if (tmpmap->keyType >= CONTAINER && tmpmap->keyType <= EMBEDDED || tmpmap->keyType == MAP)
+                if (tmpmap->keyType == POINTER || tmpmap->keyType == EMBEDDED)
                     key = key->child;
-                if (tmpmap->valueType >= CONTAINER && tmpmap->valueType <= EMBEDDED || tmpmap->valueType == MAP)
+                if (tmpmap->valueType == POINTER || tmpmap->valueType == EMBEDDED)
                     value = value->child;
                 pairtmp->key = getvaluefromjson(tmpmap->keyType, key, 0);
                 pairtmp->value = getvaluefromjson(tmpmap->valueType, value, 0);
