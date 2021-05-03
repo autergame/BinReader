@@ -2,6 +2,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "cJSON.h"
 
+#pragma region FNV1Hash XXHash HashTable
+
 uint32_t FNV1Hash(char* str)
 {
     size_t Hash = 0x811c9dc5;
@@ -213,6 +215,10 @@ int addhash(HashTable* map, char* filename)
     return 0;
 }
 
+#pragma endregion
+
+#pragma region charv memfwrite memfread
+
 typedef struct charv
 {
     char* data;
@@ -234,6 +240,10 @@ void memfread(void* buf, size_t bytes, char** membuf)
     memcpy(buf, *membuf, bytes);
     *membuf += bytes;
 }
+
+#pragma endregion
+
+#pragma region BinTypes uinttotype typetouint findtypebystring
 
 typedef enum Type
 {
@@ -264,6 +274,7 @@ Type uinttotype(uint8_t type)
         type = (type - 0x80) + CONTAINER;
     return (Type)type;
 }
+
 uint8_t typetouint(Type type)
 {
     uint8_t raw = type;
@@ -271,6 +282,7 @@ uint8_t typetouint(Type type)
         raw = (raw - CONTAINER) + 0x80;
     return raw;
 }
+
 Type findtypebystring(char* sval)
 {
     Type result = NONE;
@@ -279,6 +291,10 @@ Type findtypebystring(char* sval)
             return result;
     return -1;
 }
+
+#pragma endregion
+
+#pragma region BinStructures
 
 typedef struct BinField 
 {
@@ -327,6 +343,10 @@ typedef struct Map
     uint32_t itemsize;
 } Map;
 
+#pragma endregion
+
+#pragma region hashtofromstr
+
 char* hashtostr(HashTable* hasht, uint32_t value)
 {
     char* strvalue = lookupHashTable(hasht, value);
@@ -357,6 +377,8 @@ uint64_t hashfromstringxx(char* string)
         hash = XXHash(string, strlen(string));
     return hash;
 }
+
+#pragma endregion
 
 cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const char* strdata)
 {
@@ -460,27 +482,27 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
         {
             cJSON* jsonarr = cJSON_CreateArray();
             ContainerOrStruct* cs = (ContainerOrStruct*)value->data;
-            if (cs->valueType >= CONTAINER && cs->valueType <= EMBEDDED || cs->valueType == MAP)
-                jsonarr = cJSON_CreateObject();
             cJSON_AddItemToObject(json, "containertype", cJSON_CreateString(Type_strings[cs->valueType]));
             cJSON_AddItemToObject(json, strdata, jsonarr);
             for (uint32_t i = 0; i < cs->itemsize; i++)
-                getvaluefromtype(cs->items[i], hasht, jsonarr, "data");
+            {
+                if ((cs->valueType >= CONTAINER && cs->valueType <= EMBEDDED) || cs->valueType == MAP || cs->valueType == OPTION)
+                {
+                    cJSON* jsonobj = cJSON_CreateObject();
+                    getvaluefromtype(cs->items[i], hasht, jsonobj, "data");
+                    cJSON_AddItemToArray(jsonarr, jsonobj);
+                }
+                else
+                    getvaluefromtype(cs->items[i], hasht, jsonarr, "data");
+            }
             break;
         }
         case POINTER:
         case EMBEDDED:
         {
-            cJSON* jsonmp = cJSON_CreateObject();
             cJSON* jsonarr = cJSON_CreateArray();
             PointerOrEmbed* pe = (PointerOrEmbed*)value->data;
-            if (strcmp(strdata, "keydata") == 0 || strcmp(strdata, "valuedata") == 0)
-            {
-                cJSON_AddItemToObject(json, strdata, jsonmp);
-                cJSON_AddItemToObject(jsonmp, hashtostr(hasht, pe->name), jsonarr);
-            }
-            else
-                cJSON_AddItemToObject(json, hashtostr(hasht, pe->name), jsonarr);
+            cJSON_AddItemToObject(json, hashtostr(hasht, pe->name), jsonarr);
             for (uint16_t i = 0; i < pe->itemsize; i++)
             {
                 cJSON* jsonobj = cJSON_CreateObject();
@@ -498,7 +520,16 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
             cJSON_AddItemToObject(json, "optiontype", cJSON_CreateString(Type_strings[op->valueType]));
             cJSON_AddItemToObject(json, strdata, jsonarr);
             for (uint8_t i = 0; i < op->count; i++)
-                getvaluefromtype(op->items[i], hasht, jsonarr, "data");
+            {
+                if ((op->valueType >= CONTAINER && op->valueType <= EMBEDDED) || op->valueType == MAP || op->valueType == OPTION)
+                {
+                    cJSON* jsonobj = cJSON_CreateObject();
+                    getvaluefromtype(op->items[i], hasht, jsonobj, "data");
+                    cJSON_AddItemToArray(jsonarr, jsonobj);
+                }
+                else
+                    getvaluefromtype(op->items[i], hasht, jsonarr, "data");
+            }
             break;
         }
         case MAP:
@@ -511,8 +542,22 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
             for (uint32_t i = 0; i < mp->itemsize; i++)
             {
                 cJSON* jsonobj = cJSON_CreateObject();
-                getvaluefromtype(mp->items[i]->key, hasht, jsonobj, "keydata");
-                getvaluefromtype(mp->items[i]->value, hasht, jsonobj, "valuedata");
+                if ((mp->keyType >= CONTAINER && mp->keyType <= EMBEDDED) || mp->keyType == MAP || mp->keyType == OPTION)
+                {
+                    cJSON* jsonobje = cJSON_CreateObject();
+                    cJSON_AddItemToObject(jsonobj, "keydata", jsonobje);
+                    getvaluefromtype(mp->items[i]->key, hasht, jsonobje, "data");
+                }
+                else
+                    getvaluefromtype(mp->items[i]->key, hasht, jsonobj, "keydata");
+                if ((mp->valueType >= CONTAINER && mp->valueType <= EMBEDDED) || mp->valueType == MAP || mp->valueType == OPTION)
+                {
+                    cJSON* jsonobje = cJSON_CreateObject();
+                    cJSON_AddItemToObject(jsonobj, "valuedata", jsonobje);
+                    getvaluefromtype(mp->items[i]->value, hasht, jsonobje, "data");
+                }
+                else
+                    getvaluefromtype(mp->items[i]->value, hasht, jsonobj, "valuedata");
                 cJSON_AddItemToArray(jsonarr, jsonobj);
             }
             break;
@@ -603,13 +648,19 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
         case CONTAINER:
         case STRUCT:
         {
-            cJSON* cs = cJSON_GetObjectItem(json, "data");
             ContainerOrStruct* tmpcs = (ContainerOrStruct*)calloc(1, sizeof(ContainerOrStruct));
             tmpcs->valueType = findtypebystring((char*)cJSON_GetObjectItem(json, "containertype")->value);
+            cJSON* cs = cJSON_GetObjectItem(json, "data");
             tmpcs->itemsize = cJSON_GetArraySize(cs);
             tmpcs->items = (BinField**)calloc(tmpcs->itemsize, sizeof(BinField*));
             for (i = 0, obj = cs->child; obj != NULL; obj = obj->next, i++)
-                tmpcs->items[i] = getvaluefromjson(tmpcs->valueType, obj, 0);
+            { 
+                if ((tmpcs->valueType >= CONTAINER && tmpcs->valueType == EMBEDDED))
+                    tmpcs->items[i] = getvaluefromjson(tmpcs->valueType, obj->child, 0);
+                else
+                    tmpcs->items[i] = getvaluefromjson(tmpcs->valueType, obj, 0);
+                  
+            }
             result->data = tmpcs;
             break;
         }
@@ -618,33 +669,36 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
         {
             PointerOrEmbed* tmppe = (PointerOrEmbed*)calloc(1, sizeof(PointerOrEmbed));
             cJSON* pe = getobject ? json->child->next->next : json;
-            if (pe == NULL)
+            if (pe != NULL)
             {
-                result->data = tmppe;
-                break;
-            }
-            tmppe->name = hashfromstring(pe->string);
-            tmppe->itemsize = (uint16_t)cJSON_GetArraySize(pe);
-            tmppe->items = (Field**)calloc(tmppe->itemsize, sizeof(Field*));
-            for (i = 0, obj = pe->child; obj != NULL; obj = obj->next, i++)
-            {
-                Field* tmpfield = (Field*)calloc(1, sizeof(Field));
-                tmpfield->key = hashfromstring((char*)cJSON_GetObjectItem(obj, "name")->value);
-                tmpfield->value = getvaluefromjson(findtypebystring((char*)cJSON_GetObjectItem(obj, "type")->value), obj, 1);
-                tmppe->items[i] = tmpfield;
+                tmppe->name = hashfromstring(pe->string);
+                tmppe->itemsize = (uint16_t)cJSON_GetArraySize(pe);
+                tmppe->items = (Field**)calloc(tmppe->itemsize, sizeof(Field*));
+                for (i = 0, obj = pe->child; obj != NULL; obj = obj->next, i++)
+                {
+                    Field* tmpfield = (Field*)calloc(1, sizeof(Field));
+                    tmpfield->key = hashfromstring((char*)cJSON_GetObjectItem(obj, "name")->value);
+                    tmpfield->value = getvaluefromjson(findtypebystring((char*)cJSON_GetObjectItem(obj, "type")->value), obj, 1);
+                    tmppe->items[i] = tmpfield;
+                }
             }
             result->data = tmppe;
             break;
         }
         case OPTION:
         {
-            cJSON* op = cJSON_GetObjectItem(json, "data");
             Option* tmpo = (Option*)calloc(1, sizeof(Option));
             tmpo->valueType = findtypebystring((char*)cJSON_GetObjectItem(json, "optiontype")->value);
+            cJSON* op = cJSON_GetObjectItem(json, "data");
             tmpo->count = (uint8_t)cJSON_GetArraySize(op);
-            tmpo->items = (BinField**)calloc(tmpo->count, sizeof(BinField*));
+            tmpo->items = (BinField**)calloc(tmpo->count == 0 ? 1 : tmpo->count, sizeof(BinField*));
             for (i = 0, obj = op->child; obj != NULL; obj = obj->next, i++)
-                tmpo->items[i] = getvaluefromjson(tmpo->valueType, obj, 0);
+            {
+                if ((tmpo->valueType >= CONTAINER && tmpo->valueType == EMBEDDED))
+                    tmpo->items[i] = getvaluefromjson(tmpo->valueType, obj->child, 0);
+                else
+                    tmpo->items[i] = getvaluefromjson(tmpo->valueType, obj, 0);
+            }
             result->data = tmpo;
             break;
         }
@@ -677,6 +731,7 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
     }
     return result;
 }
+
 BinField* readvaluebytype(uint8_t typeidbin, HashTable* hasht, char** fp)
 {
     BinField* result = (BinField*)calloc(1, sizeof(BinField));
@@ -758,7 +813,7 @@ BinField* readvaluebytype(uint8_t typeidbin, HashTable* hasht, char** fp)
                 memfread(&count, 1, fp);
                 tmpo->count = count;
                 tmpo->valueType = uinttotype(type);
-                tmpo->items = (BinField**)calloc(count, sizeof(BinField**));
+                tmpo->items = (BinField**)calloc(count == 0 ? 1 : count, sizeof(BinField**));
                 for (uint8_t i = 0; i < count; i++)
                     tmpo->items[i] = readvaluebytype(tmpo->valueType, hasht, fp);
                 result->data = tmpo;
@@ -1180,7 +1235,7 @@ int main(int argc, char** argv)
         cJSON* root = cJSON_ParseWithLength(fp, fsize);
         if (root == NULL)
         {
-            printf("ERROR: cannot read file \"%s\" %s.", argv[2], cJSON_GetErrorPtr());
+            printf("ERROR: cannot read file \"%s\" %d.", argv[2], global_error.position);
             scanf("press enter to exit.");
             return 1;
         }
