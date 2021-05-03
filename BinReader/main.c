@@ -138,18 +138,18 @@ uint64_t XXHash(const uint8_t* input, size_t len)
 
 struct node
 {
-    uint32_t key;
+    uint64_t key;
     char* value;
     struct node* next;
 };
 
 typedef struct HashTable
 {
-    uint32_t size;
+    uint64_t size;
     struct node** list;
 } HashTable;
 
-HashTable* createHashTable(uint32_t size)
+HashTable* createHashTable(uint64_t size)
 {
     HashTable* t = (HashTable*)malloc(sizeof(HashTable));
     t->size = size;
@@ -157,9 +157,9 @@ HashTable* createHashTable(uint32_t size)
     return t;
 }
 
-void insertHashTable(HashTable* t, uint32_t key, char* val)
+void insertHashTable(HashTable* t, uint64_t key, char* val)
 {
-    uint32_t pos = key % t->size;
+    uint64_t pos = key % t->size;
     struct node* list = t->list[pos];
     struct node* newNode = (struct node*)malloc(sizeof(struct node));
     struct node* temp = list;
@@ -176,7 +176,7 @@ void insertHashTable(HashTable* t, uint32_t key, char* val)
     t->list[pos] = newNode;
 }
 
-char* lookupHashTable(HashTable* t, uint32_t key)
+char* lookupHashTable(HashTable* t, uint64_t key)
 {
     struct node* list = t->list[key % t->size];
     struct node* temp = list;
@@ -208,7 +208,7 @@ int addhash(HashTable* map, char* filename)
     char* hashend;
     char* hashline = strtok(fp, "\n");
     while (hashline != NULL) {   
-        uint32_t key = strtoul(hashline, &hashend, 16);
+        uint64_t key = strtoul(hashline, &hashend, 16);
         insertHashTable(map, key, hashend+1);
         hashline = strtok(NULL, "\n");
     }
@@ -358,6 +358,17 @@ char* hashtostr(HashTable* hasht, uint32_t value)
     return strvalue;
 }
 
+char* hashtostrxx(HashTable* hasht, uint64_t value)
+{
+    char* strvalue = lookupHashTable(hasht, value);
+    if (strvalue == NULL)
+    {
+        strvalue = (char*)calloc(20, 1);
+        sprintf(strvalue, "0x%08" PRIX64, value);
+    }
+    return strvalue;
+}
+
 uint32_t hashfromstring(char* string)
 {
     uint32_t hash = 0;
@@ -471,12 +482,8 @@ cJSON* getvaluefromtype(BinField* value, HashTable* hasht, cJSON* json, const ch
             cJSON_AddItemToObject(json, strdata, cJSON_CreateString(hashtostr(hasht, *(uint32_t*)value->data)));
             break;
         case WADENTRYLINK:
-        {
-            char* strvalue = (char*)calloc(19, 1);
-            sprintf(strvalue, "0x%016" PRIX64, *(uint64_t*)value->data);
-            cJSON_AddItemToObject(json, strdata, cJSON_CreateString(strvalue));
+            cJSON_AddItemToObject(json, strdata, cJSON_CreateString(hashtostrxx(hasht, *(uint64_t*)value->data)));
             break;
-        }
         case CONTAINER:
         case STRUCT:
         {
@@ -655,7 +662,7 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
             tmpcs->items = (BinField**)calloc(tmpcs->itemsize, sizeof(BinField*));
             for (i = 0, obj = cs->child; obj != NULL; obj = obj->next, i++)
             { 
-                if ((tmpcs->valueType >= CONTAINER && tmpcs->valueType == EMBEDDED))
+                if ((tmpcs->valueType >= CONTAINER && tmpcs->valueType <= EMBEDDED))
                     tmpcs->items[i] = getvaluefromjson(tmpcs->valueType, obj->child, 0);
                 else
                     tmpcs->items[i] = getvaluefromjson(tmpcs->valueType, obj, 0);
@@ -694,7 +701,7 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
             tmpo->items = (BinField**)calloc(tmpo->count == 0 ? 1 : tmpo->count, sizeof(BinField*));
             for (i = 0, obj = op->child; obj != NULL; obj = obj->next, i++)
             {
-                if ((tmpo->valueType >= CONTAINER && tmpo->valueType == EMBEDDED))
+                if ((tmpo->valueType >= CONTAINER && tmpo->valueType <= EMBEDDED))
                     tmpo->items[i] = getvaluefromjson(tmpo->valueType, obj->child, 0);
                 else
                     tmpo->items[i] = getvaluefromjson(tmpo->valueType, obj, 0);
@@ -756,6 +763,7 @@ BinField* readvaluebytype(uint8_t typeidbin, HashTable* hasht, char** fp)
                 stringb[stringlength] = '\0';
                 result->data = stringb;
                 insertHashTable(hasht, FNV1Hash(stringb), stringb);
+                insertHashTable(hasht, XXHash(stringb, stringlength), stringb);
                 break;
             }
             case STRUCT:
@@ -1042,7 +1050,6 @@ int main(int argc, char** argv)
         if (!file)
         {
             printf("ERROR: cannot read file \"%s\".\n", argv[2]);
-            scanf("press enter to exit.");
             return 1;
         }
         char* name = (char*)calloc(strlen(argv[2]), 1);
@@ -1079,7 +1086,6 @@ int main(int argc, char** argv)
             if (memcmp(&Signature, "PROP", 4) != 0)
             {
                 printf("bin has no valid signature\n");
-                scanf("press enter to exit.");
                 return 1;
             }
             cJSON_AddItemToObject(root, "signature", cJSON_CreateString("PTCH"));
@@ -1087,7 +1093,6 @@ int main(int argc, char** argv)
         if (memcmp(&Signature, "PROP", 4) != 0)
         {
             printf("bin has no valid signature\n");
-            scanf("press enter to exit.");
             return 1;
         }
         else
@@ -1200,7 +1205,6 @@ int main(int argc, char** argv)
         if (!file)
         {
             printf("ERROR: cannot write file \"%s\".", name);
-            scanf("press enter to exit.");
             return 1;
         }
         char* out =  cJSON_Print(root, 1);
@@ -1214,7 +1218,6 @@ int main(int argc, char** argv)
         if (!file)
         {
             printf("ERROR: cannot read file \"%s\".", argv[2]);
-            scanf("press enter to exit.");
             return 1;
         }
         char* name = (char*)calloc(strlen(argv[2]), 1);
@@ -1237,7 +1240,6 @@ int main(int argc, char** argv)
         if (root == NULL)
         {
             printf("ERROR: cannot read file \"%s\" %d.", argv[2], global_error.position);
-            scanf("press enter to exit.");
             return 1;
         }
         char* Signature = (char*)cJSON_GetObjectItem(root, "Signature")->value;
@@ -1346,7 +1348,6 @@ int main(int argc, char** argv)
         if (!file)
         {
             printf("ERROR: cannot write file \"%s\".", name);
-            scanf("press enter to exit.");
             return 1;
         }
         fwrite(str->data, str->lenght, 1, file);
