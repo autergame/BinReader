@@ -1056,6 +1056,7 @@ int main(int argc, char** argv)
         addhash(hasht, "hashes.binfields.txt");
         addhash(hasht, "hashes.binhashes.txt");
         addhash(hasht, "hashes.binentries.txt");
+        addhash(hasht, "hashes.game.txt");
         printf("finised loading hashes.\n");
 
         printf("reading file.\n");
