@@ -189,7 +189,7 @@ char* lookupHashTable(HashTable* t, uint64_t key)
     return NULL;
 }
 
-int addhash(HashTable* map, char* filename)
+int addhash(HashTable* map, char* filename, uint8_t xxhash)
 {
     FILE* file = fopen(filename, "rb");
     if (!file)
@@ -207,10 +207,21 @@ int addhash(HashTable* map, char* filename)
     fclose(file);
     char* hashend;
     char* hashline = strtok(fp, "\n");
-    while (hashline != NULL) {   
-        uint64_t key = strtoul(hashline, &hashend, 16);
-        insertHashTable(map, key, hashend+1);
-        hashline = strtok(NULL, "\n");
+    if (xxhash == 0)
+    {
+        while (hashline != NULL) {
+            uint64_t key = strtoul(hashline, &hashend, 16);
+            insertHashTable(map, key, hashend + 1);
+            hashline = strtok(NULL, "\n");
+        }
+    }
+    else
+    {
+        while (hashline != NULL) {
+            uint64_t key = strtoull(hashline, &hashend, 16);
+            insertHashTable(map, key, hashend + 1);
+            hashline = strtok(NULL, "\n");
+        }
     }
     return 0;
 }
@@ -364,7 +375,7 @@ char* hashtostrxx(HashTable* hasht, uint64_t value)
     if (strvalue == NULL)
     {
         strvalue = (char*)calloc(20, 1);
-        sprintf(strvalue, "0x%08" PRIX64, value);
+        sprintf(strvalue, "0x%016" PRIX64, value);
     }
     return strvalue;
 }
@@ -662,7 +673,7 @@ BinField* getvaluefromjson(Type typebin, cJSON* json, uint8_t getobject)
             tmpcs->items = (BinField**)calloc(tmpcs->itemsize, sizeof(BinField*));
             for (i = 0, obj = cs->child; obj != NULL; obj = obj->next, i++)
             { 
-                if ((tmpcs->valueType >= CONTAINER && tmpcs->valueType <= EMBEDDED))
+                if (tmpcs->valueType == POINTER || tmpcs->valueType == EMBEDDED)
                     tmpcs->items[i] = getvaluefromjson(tmpcs->valueType, obj->child, 0);
                 else
                     tmpcs->items[i] = getvaluefromjson(tmpcs->valueType, obj, 0);
@@ -1059,11 +1070,11 @@ int main(int argc, char** argv)
 
         printf("loading hashes.\n");
         HashTable* hasht = createHashTable(1000000);
-        addhash(hasht, "hashes.bintypes.txt");
-        addhash(hasht, "hashes.binfields.txt");
-        addhash(hasht, "hashes.binhashes.txt");
-        addhash(hasht, "hashes.binentries.txt");
-        addhash(hasht, "hashes.game.txt");
+        addhash(hasht, "hashes.bintypes.txt", 0);
+        addhash(hasht, "hashes.binfields.txt", 0);
+        addhash(hasht, "hashes.binhashes.txt", 0);
+        addhash(hasht, "hashes.binentries.txt", 0);
+        addhash(hasht, "hashes.game.txt", 1);
         printf("finised loading hashes.\n");
 
         printf("reading file.\n");
