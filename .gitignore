@@ -3,6 +3,9 @@
 *.iobj
 *.ipdb
 Debug/
+x64/Debug
 BinReader/Debug/
 BinReader/DebugWR/
 BinReader/Release/
+BinReader/x64/Debug/
+BinReader/x64/Release/

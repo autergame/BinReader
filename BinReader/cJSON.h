@@ -107,7 +107,7 @@ extern "C"
     char* cJSON_Print(const cJSON* item, uint8_t format);
     void cJSON_Delete(cJSON* item);
 
-    size_t cJSON_GetArraySize(const cJSON* array);
+    uint32_t cJSON_GetArraySize(const cJSON* array);
     cJSON* cJSON_GetArrayItem(const cJSON* array, int index);
     cJSON* cJSON_GetObjectItem(const cJSON* const object, const char* const string);
     uint8_t cJSON_HasObjectItem(const cJSON* object, const char* string);
@@ -137,7 +137,7 @@ extern "C"
 
 typedef struct {
     const unsigned char* json;
-    size_t position;
+    int position;
 } error;
 static error global_error = { NULL, 0 };
 
@@ -204,7 +204,7 @@ typedef struct
 
 static uint8_t parse_number(cJSON* const item, parse_buffer* const input_buffer)
 {
-    int i, length = 0;
+    size_t i, length = 0;
     char number_c_string[32];
     uint8_t floate = 0, minus = 0;
 
@@ -928,11 +928,11 @@ fail:
 
         if (buffer.offset < buffer.length)
         {
-            local_error.position = buffer.offset;
+            local_error.position = (int)buffer.offset;
         }
         else if (buffer.length > 0)
         {
-            local_error.position = buffer.length - 1;
+            local_error.position = (int)buffer.length - 1;
         }
 
         if (return_parse_end != NULL)
@@ -1563,10 +1563,10 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
     return 1;
 }
 
-size_t cJSON_GetArraySize(const cJSON* array)
+uint32_t cJSON_GetArraySize(const cJSON* array)
 {
     cJSON* child = NULL;
-    size_t size = 0;
+    uint32_t size = 0;
 
     if (array == NULL)
     {
