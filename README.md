@@ -14,3 +14,5 @@ encode json to bin:
 ```
 BinReader.exe -e skin0.json
 ```
+
+![alt text](BinReader_image.png)

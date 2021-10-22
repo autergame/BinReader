@@ -17,20 +17,10 @@
   THE SOFTWARE.
 */
 
+#ifndef _cJSON_H_
+#define _cJSON_H_
 
-#if !defined(_CRT_SECURE_NO_DEPRECATE) && defined(_MSC_VER)
-#define _CRT_SECURE_NO_DEPRECATE
-#endif
-
-#ifdef __GNUC__
-#pragma GCC visibility push(default)
-#endif
-#if defined(_MSC_VER)
-#pragma warning (push)
-#pragma warning (disable : 4001)
-#endif
-
-#include <inttypes.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -38,94 +28,59 @@
 #include <limits.h>
 #include <ctype.h>
 #include <float.h>
+#include <inttypes.h>
 
-#if defined(_MSC_VER)
-#pragma warning (pop)
+#ifdef _WIN64
+typedef uint64_t sizem_t;
+#define SIZEM_MAX _I64_MAX
+#define SIZEM_MIN _I64_MIN
+#else
+typedef uint32_t sizem_t;
+#define SIZEM_MAX INT_MAX
+#define SIZEM_MIN INT_MIN
 #endif
-#ifdef __GNUC__
-#pragma GCC visibility pop
-#endif
 
-#ifndef cJSON__h
-#define cJSON__h
-
-#ifdef __cplusplus
-extern "C"
+enum jType
 {
-#endif
+    jinvalid = 0,
+    jfalse = 1,
+    jtrue = 2, 
+    jnull = 3,
+    jnumber = 4,
+    jstring = 6,
+    jarray = 7,
+    jobject = 8,
+    jraw = 9
+};
 
-#include <stddef.h>
+enum jnType
+{
+    jNone = 0,
+    jSInt8 = 1,
+    jUInt8 = 2,
+    jSInt16 = 3,
+    jUInt16 = 4,
+    jSInt32 = 5,
+    jUInt32 = 6,
+    jSInt64 = 7,
+    jUInt64 = 8,
+    jFloat32 = 9
+};
 
-    typedef enum jType
-    {
-        jinvalid = 0,
-        jfalse = 1,
-        jtrue = 2, 
-        jnull = 3,
-        jnumber = 4,
-        jstring = 6,
-        jarray = 7,
-        jobject = 8,
-        jraw = 9
-    } jType;
+struct cJSON
+{
+    cJSON* next;
+    cJSON* prev;
+    cJSON* child;
 
-    typedef enum jnType
-    {
-        jNone = 0,
-        jSInt8 = 1,
-        jUInt8 = 2,
-        jSInt16 = 3,
-        jUInt16 = 4,
-        jSInt32 = 5,
-        jUInt32 = 6,
-        jSInt64 = 7,
-        jUInt64 = 8,
-        jFloat32 = 9
-    } jnType;
-
-    typedef struct cJSON
-    {
-        struct cJSON* next;
-        struct cJSON* prev;
-        struct cJSON* child;
-
-        jType type;
-        jnType typen;
-        void* value;
-        char* string;
-    } cJSON;
+    jType type;
+    jnType typen;
+    void* value;
+    char* string;
+};
 
 #ifndef CJSON_NESTING_LIMIT
 #define CJSON_NESTING_LIMIT 1000
-#endif
-
-    cJSON* cJSON_Parse(const char* value);
-    cJSON* cJSON_ParseWithLength(const char* value, size_t buffer_length);
-    cJSON* cJSON_ParseWithOpts(const char* value, const char** return_parse_end, uint8_t require_null_terminated);
-    cJSON* cJSON_ParseWithLengthOpts(const char* value, size_t buffer_length, const char** return_parse_end, uint8_t require_null_terminated);
-
-    char* cJSON_Print(const cJSON* item, uint8_t format);
-    void cJSON_Delete(cJSON* item);
-
-    uint32_t cJSON_GetArraySize(const cJSON* array);
-    cJSON* cJSON_GetArrayItem(const cJSON* array, int index);
-    cJSON* cJSON_GetObjectItem(const cJSON* const object, const char* const string);
-    uint8_t cJSON_HasObjectItem(const cJSON* object, const char* string);
-    const char* cJSON_GetErrorPtr();
-
-    cJSON* cJSON_CreateNull();
-    cJSON* cJSON_CreateBool(uint8_t boolean);
-    cJSON* cJSON_CreateNumber(void* num, jnType type);
-    cJSON* cJSON_CreateString(const char* string);
-    cJSON* cJSON_CreateRaw(const char* raw);
-    cJSON* cJSON_CreateArray();
-    cJSON* cJSON_CreateObject();
-
-    uint8_t cJSON_AddItemToArray(cJSON* array, cJSON* item);
-    uint8_t cJSON_AddItemToObject(cJSON* object, const char* string, cJSON* item);
-
-#ifdef __cplusplus
-}
 #endif
 
 #ifndef isinf
@@ -135,10 +90,11 @@ extern "C"
 #define isnan(d) (d != d)
 #endif
 
-typedef struct {
-    const unsigned char* json;
+struct error
+{
+    const uint8_t* json;
     int position;
-} error;
+};
 static error global_error = { NULL, 0 };
 
 const char* cJSON_GetErrorPtr()
@@ -146,22 +102,15 @@ const char* cJSON_GetErrorPtr()
     return (const char*)(global_error.json + global_error.position);
 }
 
-static unsigned char* cJSON_strdup(const unsigned char* string)
+static char* cJSON_strdup(const char* string)
 {
-    size_t length = 0;
-    unsigned char* copy = NULL;
-
     if (string == NULL)
     {
         return NULL;
     }
 
-    length = strlen((const char*)string) + sizeof("");
-    copy = (unsigned char*)calloc(length, 1);
-    if (copy == NULL)
-    {
-        return NULL;
-    }
+    sizem_t length = strlen(string);
+    char* copy = (char*)calloc(length + 1, 1);
     memcpy(copy, string, length);
 
     return copy;
@@ -170,11 +119,6 @@ static unsigned char* cJSON_strdup(const unsigned char* string)
 static cJSON* cJSON_New_Item()
 {
     cJSON* node = (cJSON*)calloc(1, sizeof(cJSON));
-    if (node)
-    {
-        memset(node, '\0', sizeof(cJSON));
-    }
-
     return node;
 }
 
@@ -189,13 +133,13 @@ void cJSON_Delete(cJSON* item)
     }
 }
 
-typedef struct
+struct parse_buffer
 {
-    const unsigned char* content;
-    size_t length;
-    size_t offset;
-    size_t depth;              
-} parse_buffer;
+    const uint8_t* content;
+    sizem_t length;
+    sizem_t offset;
+    sizem_t depth;
+};
 
 #define can_read(buffer, size) ((buffer != NULL) && (((buffer)->offset + size) <= (buffer)->length))
 #define can_access_at_index(buffer, index) ((buffer != NULL) && (((buffer)->offset + index) < (buffer)->length))
@@ -204,7 +148,7 @@ typedef struct
 
 static uint8_t parse_number(cJSON* const item, parse_buffer* const input_buffer)
 {
-    size_t i, length = 0;
+    sizem_t i, length = 0;
     char number_c_string[32];
     uint8_t floate = 0, minus = 0;
 
@@ -282,20 +226,20 @@ loop_end:
     return 1;
 }
 
-typedef struct
+struct printbuffer
 {
-    unsigned char* buffer;
-    size_t length;
-    size_t offset;
-    size_t depth;        
+    uint8_t* buffer;
+    sizem_t length;
+    sizem_t offset;
+    sizem_t depth;        
     uint8_t noalloc;
     uint8_t format;        
-} printbuffer;
+};
 
-static unsigned char* ensure(printbuffer* const p, size_t needed)
+static uint8_t* ensure(printbuffer* const p, sizem_t needed)
 {
-    unsigned char* newbuffer = NULL;
-    size_t newsize = 0;
+    uint8_t* newbuffer = NULL;
+    sizem_t newsize = 0;
 
     if ((p == NULL) || (p->buffer == NULL))
     {
@@ -338,7 +282,7 @@ static unsigned char* ensure(printbuffer* const p, size_t needed)
         newsize = needed * 2;
     }
 
-    newbuffer = (unsigned char*)realloc(p->buffer, newsize);
+    newbuffer = (uint8_t*)realloc(p->buffer, newsize);
     if (newbuffer == NULL)
     {
         free(p->buffer);
@@ -356,7 +300,7 @@ static unsigned char* ensure(printbuffer* const p, size_t needed)
 
 static void update_offset(printbuffer* const buffer)
 {
-    const unsigned char* buffer_pointer = NULL;
+    const uint8_t* buffer_pointer = NULL;
     if ((buffer == NULL) || (buffer->buffer == NULL))
     {
         return;
@@ -368,10 +312,10 @@ static void update_offset(printbuffer* const buffer)
 
 static uint8_t print_number(const cJSON* const item, printbuffer* const output_buffer)
 {
-    size_t i = 0;
+    sizem_t i = 0;
     int length = 0;
-    unsigned char* output_pointer = NULL;
-    unsigned char number_buffer[26] = { 0 };         
+    uint8_t* output_pointer = NULL;
+    uint8_t number_buffer[26] = { 0 };         
 
     if (output_buffer == NULL)
         return 0;
@@ -385,7 +329,7 @@ static uint8_t print_number(const cJSON* const item, printbuffer* const output_b
             length = sprintf((char*)number_buffer, "%.9g", d);
 
         uint8_t havepoint = 0;
-        for (i = 0; i < ((size_t)length); i++)
+        for (i = 0; i < ((sizem_t)length); i++)
             if (number_buffer[i] == '.')
                 havepoint = 1;
 
@@ -395,11 +339,11 @@ static uint8_t print_number(const cJSON* const item, printbuffer* const output_b
         if ((length < 0) || (length > (int)(sizeof(number_buffer) - 1)))
             return 0;
 
-        output_pointer = ensure(output_buffer, (size_t)length + sizeof(""));
+        output_pointer = ensure(output_buffer, (sizem_t)length + sizeof(""));
         if (output_pointer == NULL)
             return 0;
 
-        for (i = 0; i < ((size_t)length); i++)
+        for (i = 0; i < ((sizem_t)length); i++)
             output_pointer[i] = number_buffer[i];
     }
     else
@@ -431,37 +375,37 @@ static uint8_t print_number(const cJSON* const item, printbuffer* const output_b
                 length = sprintf((char*)number_buffer, "%" PRIu64, *(uint64_t*)item->value);
                 break;
         }     
-        output_pointer = ensure(output_buffer, (size_t)length + sizeof(""));
+        output_pointer = ensure(output_buffer, (sizem_t)length + sizeof(""));
         if (output_pointer == NULL)
             return 0;
-        for (i = 0; i < ((size_t)length); i++)
+        for (i = 0; i < ((sizem_t)length); i++)
             output_pointer[i] = number_buffer[i];
     }
 
     output_pointer[i] = '\0';
-    output_buffer->offset += (size_t)length;
+    output_buffer->offset += (sizem_t)length;
 
     return 1;
 }
 
-static unsigned parse_hex4(const unsigned char* const input)
+static unsigned parse_hex4(const uint8_t* const input)
 {
-    unsigned int h = 0;
-    size_t i = 0;
+    uint32_t h = 0;
+    sizem_t i = 0;
 
     for (i = 0; i < 4; i++)
     {
         if ((input[i] >= '0') && (input[i] <= '9'))
         {
-            h += (unsigned int)input[i] - '0';
+            h += (uint32_t)input[i] - '0';
         }
         else if ((input[i] >= 'A') && (input[i] <= 'F'))
         {
-            h += (unsigned int)10 + input[i] - 'A';
+            h += (uint32_t)10 + input[i] - 'A';
         }
         else if ((input[i] >= 'a') && (input[i] <= 'f'))
         {
-            h += (unsigned int)10 + input[i] - 'a';
+            h += (uint32_t)10 + input[i] - 'a';
         }
         else   
         {
@@ -477,15 +421,15 @@ static unsigned parse_hex4(const unsigned char* const input)
     return h;
 }
 
-static unsigned char utf16_literal_to_utf8(const unsigned char* const input_pointer, const unsigned char* const input_end, unsigned char** output_pointer)
+static uint8_t utf16_literal_to_utf8(const uint8_t* const input_pointer, const uint8_t* const input_end, uint8_t** output_pointer)
 {
-    long unsigned int codepoint = 0;
-    unsigned int first_code = 0;
-    const unsigned char* first_sequence = input_pointer;
-    unsigned char utf8_length = 0;
-    unsigned char utf8_position = 0;
-    unsigned char sequence_length = 0;
-    unsigned char first_byte_mark = 0;
+    uint32_t codepoint = 0;
+    uint32_t first_code = 0;
+    const uint8_t* first_sequence = input_pointer;
+    uint8_t utf8_length = 0;
+    uint8_t utf8_position = 0;
+    uint8_t sequence_length = 0;
+    uint8_t first_byte_mark = 0;
 
     if ((input_end - first_sequence) < 6)
     {
@@ -501,8 +445,8 @@ static unsigned char utf16_literal_to_utf8(const unsigned char* const input_poin
 
     if ((first_code >= 0xD800) && (first_code <= 0xDBFF))
     {
-        const unsigned char* second_sequence = first_sequence + 6;
-        unsigned int second_code = 0;
+        const uint8_t* second_sequence = first_sequence + 6;
+        uint32_t second_code = 0;
         sequence_length = 12;   
 
         if ((input_end - second_sequence) < 6)
@@ -554,18 +498,18 @@ static unsigned char utf16_literal_to_utf8(const unsigned char* const input_poin
         goto fail;
     }
 
-    for (utf8_position = (unsigned char)(utf8_length - 1); utf8_position > 0; utf8_position--)
+    for (utf8_position = (uint8_t)(utf8_length - 1); utf8_position > 0; utf8_position--)
     {
-        (*output_pointer)[utf8_position] = (unsigned char)((codepoint | 0x80) & 0xBF);
+        (*output_pointer)[utf8_position] = (uint8_t)((codepoint | 0x80) & 0xBF);
         codepoint >>= 6;
     }
     if (utf8_length > 1)
     {
-        (*output_pointer)[0] = (unsigned char)((codepoint | first_byte_mark) & 0xFF);
+        (*output_pointer)[0] = (uint8_t)((codepoint | first_byte_mark) & 0xFF);
     }
     else
     {
-        (*output_pointer)[0] = (unsigned char)(codepoint & 0x7F);
+        (*output_pointer)[0] = (uint8_t)(codepoint & 0x7F);
     }
 
     *output_pointer += utf8_length;
@@ -578,10 +522,10 @@ fail:
 
 static uint8_t parse_string(cJSON* const item, parse_buffer* const input_buffer)
 {
-    const unsigned char* input_pointer = buffer_at_offset(input_buffer) + 1;
-    const unsigned char* input_end = buffer_at_offset(input_buffer) + 1;
-    unsigned char* output_pointer = NULL;
-    unsigned char* output = NULL;
+    const uint8_t* input_pointer = buffer_at_offset(input_buffer) + 1;
+    const uint8_t* input_end = buffer_at_offset(input_buffer) + 1;
+    uint8_t* output_pointer = NULL;
+    uint8_t* output = NULL;
 
     if (buffer_at_offset(input_buffer)[0] != '\"')
     {
@@ -589,13 +533,13 @@ static uint8_t parse_string(cJSON* const item, parse_buffer* const input_buffer)
     }
 
     {
-        size_t allocation_length = 0;
-        size_t skipped_bytes = 0;
-        while (((size_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\"'))
+        sizem_t allocation_length = 0;
+        sizem_t skipped_bytes = 0;
+        while (((sizem_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\"'))
         {
             if (input_end[0] == '\\')
             {
-                if ((size_t)(input_end + 1 - input_buffer->content) >= input_buffer->length)
+                if ((sizem_t)(input_end + 1 - input_buffer->content) >= input_buffer->length)
                 {
                     goto fail;
                 }
@@ -604,13 +548,13 @@ static uint8_t parse_string(cJSON* const item, parse_buffer* const input_buffer)
             }
             input_end++;
         }
-        if (((size_t)(input_end - input_buffer->content) >= input_buffer->length) || (*input_end != '\"'))
+        if (((sizem_t)(input_end - input_buffer->content) >= input_buffer->length) || (*input_end != '\"'))
         {
             goto fail;     
         }
 
-        allocation_length = (size_t)(input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
-        output = (unsigned char*)calloc(allocation_length + 1, 1);
+        allocation_length = (sizem_t)(input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
+        output = (uint8_t*)calloc(allocation_length + 1, 1);
         if (output == NULL)
         {
             goto fail;    
@@ -626,7 +570,7 @@ static uint8_t parse_string(cJSON* const item, parse_buffer* const input_buffer)
         }
         else
         {
-            unsigned char sequence_length = 2;
+            uint8_t sequence_length = 2;
             if ((input_end - input_pointer) < 1)
             {
                 goto fail;
@@ -675,7 +619,7 @@ static uint8_t parse_string(cJSON* const item, parse_buffer* const input_buffer)
     item->type = jstring;
     item->value = (char*)output;
 
-    input_buffer->offset = (size_t)(input_end - input_buffer->content);
+    input_buffer->offset = (sizem_t)(input_end - input_buffer->content);
     input_buffer->offset++;
 
     return 1;
@@ -688,19 +632,19 @@ fail:
 
     if (input_pointer != NULL)
     {
-        input_buffer->offset = (size_t)(input_pointer - input_buffer->content);
+        input_buffer->offset = (sizem_t)(input_pointer - input_buffer->content);
     }
 
     return 0;
 }
 
-static uint8_t print_string_ptr(const unsigned char* const input, printbuffer* const output_buffer)
+static uint8_t print_string_ptr(const uint8_t* const input, printbuffer* const output_buffer)
 {
-    const unsigned char* input_pointer = NULL;
-    unsigned char* output = NULL;
-    unsigned char* output_pointer = NULL;
-    size_t output_length = 0;
-    size_t escape_characters = 0;
+    const uint8_t* input_pointer = NULL;
+    uint8_t* output = NULL;
+    uint8_t* output_pointer = NULL;
+    sizem_t output_length = 0;
+    sizem_t escape_characters = 0;
 
     if (output_buffer == NULL)
     {
@@ -740,7 +684,7 @@ static uint8_t print_string_ptr(const unsigned char* const input, printbuffer* c
             break;
         }
     }
-    output_length = (size_t)(input_pointer - input) + escape_characters;
+    output_length = (sizem_t)(input_pointer - input) + escape_characters;
 
     output = ensure(output_buffer, output_length + sizeof("\"\""));
     if (output == NULL)
@@ -807,7 +751,7 @@ static uint8_t print_string_ptr(const unsigned char* const input, printbuffer* c
 
 static uint8_t print_string(const cJSON* const item, printbuffer* const p)
 {
-    return print_string_ptr((unsigned char*)item->value, p);
+    return print_string_ptr((uint8_t*)item->value, p);
 }
 
 static uint8_t parse_value(cJSON* const item, parse_buffer* const input_buffer);
@@ -857,21 +801,7 @@ static parse_buffer* skip_utf8_bom(parse_buffer* const buffer)
     return buffer;
 }
 
-cJSON* cJSON_ParseWithOpts(const char* value, const char** return_parse_end, uint8_t require_null_terminated)
-{
-    size_t buffer_length;
-
-    if (NULL == value)
-    {
-        return NULL;
-    }
-
-    buffer_length = strlen(value) + sizeof("");
-
-    return cJSON_ParseWithLengthOpts(value, buffer_length, return_parse_end, require_null_terminated);
-}
-
-cJSON* cJSON_ParseWithLengthOpts(const char* value, size_t buffer_length, const char** return_parse_end, uint8_t require_null_terminated)
+cJSON* cJSON_ParseWithLengthOpts(const char* value, sizem_t buffer_length, const char** return_parse_end, uint8_t require_null_terminated)
 {
     parse_buffer buffer = { 0, 0, 0, 0 };
     cJSON* item = NULL;
@@ -884,7 +814,7 @@ cJSON* cJSON_ParseWithLengthOpts(const char* value, size_t buffer_length, const 
         goto fail;
     }
 
-    buffer.content = (const unsigned char*)value;
+    buffer.content = (const uint8_t*)value;
     buffer.length = buffer_length;
     buffer.offset = 0;
 
@@ -923,7 +853,7 @@ fail:
     if (value != NULL)
     {
         error local_error;
-        local_error.json = (const unsigned char*)value;
+        local_error.json = (const uint8_t*)value;
         local_error.position = 0;
 
         if (buffer.offset < buffer.length)
@@ -946,12 +876,26 @@ fail:
     return NULL;
 }
 
+cJSON* cJSON_ParseWithOpts(const char* value, const char** return_parse_end, uint8_t require_null_terminated)
+{
+    sizem_t buffer_length;
+
+    if (NULL == value)
+    {
+        return NULL;
+    }
+
+    buffer_length = strlen(value) + sizeof("");
+
+    return cJSON_ParseWithLengthOpts(value, buffer_length, return_parse_end, require_null_terminated);
+}
+
 cJSON* cJSON_Parse(const char* value)
 {
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
-cJSON* cJSON_ParseWithLength(const char* value, size_t buffer_length)
+cJSON* cJSON_ParseWithLength(const char* value, sizem_t buffer_length)
 {
     return cJSON_ParseWithLengthOpts(value, buffer_length, 0, 0);
 }
@@ -960,13 +904,13 @@ cJSON* cJSON_ParseWithLength(const char* value, size_t buffer_length)
 
 char* cJSON_Print(const cJSON* const item, uint8_t format)
 {
-    static const size_t default_buffer_size = 256;
+    static const sizem_t default_buffer_size = 256;
     printbuffer buffer[1];
     char* printed = NULL;
 
     memset(buffer, 0, sizeof(buffer));
 
-    buffer->buffer = (unsigned char*)calloc(default_buffer_size, 1);
+    buffer->buffer = (uint8_t*)calloc(default_buffer_size, 1);
     buffer->length = default_buffer_size;
     buffer->format = format;
     if (buffer->buffer == NULL)
@@ -1053,7 +997,7 @@ static uint8_t parse_value(cJSON* const item, parse_buffer* const input_buffer)
 
 static uint8_t print_value(const cJSON* const item, printbuffer* const output_buffer)
 {
-    unsigned char* output = NULL;
+    uint8_t* output = NULL;
 
     if ((item == NULL) || (output_buffer == NULL))
     {
@@ -1094,7 +1038,7 @@ static uint8_t print_value(const cJSON* const item, printbuffer* const output_bu
 
     case jraw:
     {
-        size_t raw_length = 0;
+        sizem_t raw_length = 0;
         if (item->value == NULL)
         {
             return 0;
@@ -1212,10 +1156,10 @@ fail:
 
 static uint8_t print_array(const cJSON* const item, printbuffer* const output_buffer)
 {
-    unsigned char* output_pointer = NULL;
-    size_t length = 0;
+    uint8_t* output_pointer = NULL;
+    sizem_t length = 0;
     cJSON* current_element = item->child;
-    size_t i;
+    sizem_t i;
 
     if (output_buffer == NULL)
     {
@@ -1264,11 +1208,11 @@ static uint8_t print_array(const cJSON* const item, printbuffer* const output_bu
         {
             if (output_buffer->format)
                 if (current_element->type == jobject || current_element->type == jnumber)
-                    length = (size_t)2;
+                    length = (sizem_t)2;
                 else
-                    length = (size_t)2 + output_buffer->depth;
+                    length = (sizem_t)2 + output_buffer->depth;
             else
-                length = (size_t)1;
+                length = (sizem_t)1;
             output_pointer = ensure(output_buffer, length);
             if (output_pointer == NULL)
             {
@@ -1429,9 +1373,9 @@ fail:
 
 static uint8_t print_object(const cJSON* const item, printbuffer* const output_buffer)
 {
-    unsigned char* output_pointer = NULL;
-    size_t length = 0;
-    size_t i;
+    uint8_t* output_pointer = NULL;
+    sizem_t length = 0;
+    sizem_t i;
     cJSON* current_item = item->child;
 
     if (output_buffer == NULL)
@@ -1441,7 +1385,7 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
 
     if (output_buffer->format)
     {
-        length = (size_t)(output_buffer->depth ? output_buffer->depth + 1 : 0) + 2;       
+        length = (sizem_t)(output_buffer->depth ? output_buffer->depth + 1 : 0) + 2;       
         output_pointer = ensure(output_buffer, length + 1);
         if (output_pointer == NULL)
         {
@@ -1467,7 +1411,7 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
     }
     else
     {
-        length = (size_t)1;    
+        length = (sizem_t)1;    
         output_pointer = ensure(output_buffer, length + 1);
         if (output_pointer == NULL)
         {
@@ -1484,7 +1428,7 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
     {
         if (output_buffer->format)
         {
-            size_t i;
+            sizem_t i;
             output_pointer = ensure(output_buffer, output_buffer->depth);
             if (output_pointer == NULL)
             {
@@ -1497,13 +1441,13 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
             output_buffer->offset += output_buffer->depth;
         }
 
-        if (!print_string_ptr((unsigned char*)current_item->string, output_buffer))
+        if (!print_string_ptr((uint8_t*)current_item->string, output_buffer))
         {
             return 0;
         }
         update_offset(output_buffer);
 
-        length = (size_t)(output_buffer->format ? 2 : 1);
+        length = (sizem_t)(output_buffer->format ? 2 : 1);
         output_pointer = ensure(output_buffer, length);
         if (output_pointer == NULL)
         {
@@ -1522,7 +1466,7 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
         }
         update_offset(output_buffer);
 
-        length = ((size_t)(output_buffer->format ? 1 : 0) + (size_t)(current_item->next ? 1 : 0));
+        length = ((sizem_t)(output_buffer->format ? 1 : 0) + (sizem_t)(current_item->next ? 1 : 0));
         output_pointer = ensure(output_buffer, length + 1);
         if (output_pointer == NULL)
         {
@@ -1550,7 +1494,7 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
     }
     if (output_buffer->format)
     {
-        size_t i;
+        sizem_t i;
         for (i = 0; i < (output_buffer->depth - 1); i++)
         {
             *output_pointer++ = '\t';
@@ -1584,7 +1528,7 @@ uint32_t cJSON_GetArraySize(const cJSON* array)
     return (int)size;
 }
 
-static cJSON* get_array_item(const cJSON* array, size_t index)
+static cJSON* get_array_item(const cJSON* array, sizem_t index)
 {
     cJSON* current_child = NULL;
 
@@ -1610,7 +1554,7 @@ cJSON* cJSON_GetArrayItem(const cJSON* array, int index)
         return NULL;
     }
 
-    return get_array_item(array, (size_t)index);
+    return get_array_item(array, (sizem_t)index);
 }
 
 static cJSON* cJSON_GetObjectItem(const cJSON* const object, const char* const name)
@@ -1688,23 +1632,20 @@ uint8_t cJSON_AddItemToArray(cJSON* array, cJSON* item)
     return add_item_to_array(array, item);
 }
 
-static uint8_t add_item_to_object(cJSON* const object, const char* const string, cJSON* const item)
+static uint8_t add_item_to_object(cJSON* const object, const char* string, cJSON* const item)
 {
-    char* new_key = NULL;
-    jType new_type = jinvalid;
-
     if ((object == NULL) || (string == NULL) || (item == NULL) || (object == item))
     {
         return 0;
     }
 
-    new_key = (char*)cJSON_strdup((const unsigned char*)string);
+    char* new_key = cJSON_strdup(string);
     if (new_key == NULL)
     {
         return 0;
     }
 
-    new_type = item->type;
+    jType new_type = item->type;
 
     if (item->string != NULL)
     {
@@ -1763,7 +1704,7 @@ cJSON* cJSON_CreateString(const char* string)
     if (item)
     {
         item->type = jstring;
-        item->value = (char*)cJSON_strdup((const unsigned char*)string);
+        item->value = cJSON_strdup(string);
         if (!item->value)
         {
             cJSON_Delete(item);
@@ -1780,7 +1721,7 @@ cJSON* cJSON_CreateRaw(const char* raw)
     if (item)
     {
         item->type = jraw;
-        item->value = (char*)cJSON_strdup((const unsigned char*)raw);
+        item->value = cJSON_strdup(raw);
         if (!item->value)
         {
             cJSON_Delete(item);
@@ -1813,4 +1754,4 @@ cJSON* cJSON_CreateObject()
     return item;
 }
 
-#endif
+#endif //_cJSON_H_
