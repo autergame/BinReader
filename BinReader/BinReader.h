@@ -28,6 +28,9 @@ enum class BinType : uint8_t
 	FLAG
 };
 
+bool IsComplexBinType(BinType type);
+bool IsPointerOrEmbedded(BinType type);
+
 BinType Uint8ToType(uint8_t type);
 uint8_t TypeToUint8(BinType type);
 BinType FindTypeByString(const char* string);

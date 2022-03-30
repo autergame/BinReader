@@ -1,5 +1,15 @@
 #include "BinReader.h"
 
+bool IsComplexBinType(BinType type)
+{
+	return (type >= BinType::CONTAINER && type != BinType::LINK && type != BinType::FLAG);
+}
+
+bool IsPointerOrEmbedded(BinType type)
+{
+	return (type == BinType::POINTER || type == BinType::EMBEDDED);
+}
+
 BinType Uint8ToType(uint8_t type)
 {
 	if (type & 0x80)
@@ -483,7 +493,6 @@ int PacketBin::DecodeBin(char* filePath, HashTable& hashT)
 		if (patchCount > 0)
 		{
 			patchMap->items.reserve(patchCount);
-
 			for (size_t i = 0; i < patchCount; i++)
 			{
 				uint32_t patchKeyHash = input.MemRead<uint32_t>();
@@ -542,8 +551,6 @@ int PacketBin::EncodeBin(char* filePath)
 
 	if (m_isPatch)
 	{
-		if (m_Unknown = 0)
-			m_Unknown = 1;
 		output.MemWrite((void*)"PTCH", 4);
 		output.MemWrite(m_Unknown);
 	}

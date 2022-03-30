@@ -128,15 +128,15 @@ cJSON* WriteJsonValueByBinFieldType(BinField* value, HashTable& hashT, cJSON* js
             cJSON_AddItemToObject(json, strdata, jsonarr);
             for (uint32_t i = 0; i < cs->items.size(); i++)
             {
-                if ((cs->valueType >= BinType::CONTAINER && cs->valueType <= BinType::EMBEDDED) ||
-                     cs->valueType == BinType::MAP || cs->valueType == BinType::OPTION)
+                if (IsComplexBinType(cs->valueType))
                 {
                     cJSON* jsonobj = cJSON_CreateObject();
                     WriteJsonValueByBinFieldType(cs->items[i], hashT, jsonobj, "data");
                     cJSON_AddItemToArray(jsonarr, jsonobj);
                 }
-                else
+                else {
                     WriteJsonValueByBinFieldType(cs->items[i], hashT, jsonarr, "data");
+                }
             }
             break;
         }
@@ -164,15 +164,15 @@ cJSON* WriteJsonValueByBinFieldType(BinField* value, HashTable& hashT, cJSON* js
             cJSON_AddItemToObject(json, strdata, jsonarr);
             for (uint8_t i = 0; i < op->items.size(); i++)
             {
-                if ((op->valueType >= BinType::CONTAINER && op->valueType <= BinType::EMBEDDED) ||
-                     op->valueType == BinType::MAP || op->valueType == BinType::OPTION)
+                if (IsComplexBinType(op->valueType))
                 {
                     cJSON* jsonobj = cJSON_CreateObject();
                     WriteJsonValueByBinFieldType(op->items[i], hashT, jsonobj, "data");
                     cJSON_AddItemToArray(jsonarr, jsonobj);
                 }
-                else
+                else {
                     WriteJsonValueByBinFieldType(op->items[i], hashT, jsonarr, "data");
+                }
             }
             break;
         }
@@ -186,24 +186,24 @@ cJSON* WriteJsonValueByBinFieldType(BinField* value, HashTable& hashT, cJSON* js
             for (uint32_t i = 0; i < mp->items.size(); i++)
             {
                 cJSON* jsonobj = cJSON_CreateObject();
-                if ((mp->keyType >= BinType::CONTAINER && mp->keyType <= BinType::EMBEDDED) || 
-                     mp->keyType == BinType::MAP || mp->keyType == BinType::OPTION)
+                if (IsComplexBinType(mp->keyType))
                 {
                     cJSON* jsonobje = cJSON_CreateObject();
                     cJSON_AddItemToObject(jsonobj, "keydata", jsonobje);
                     WriteJsonValueByBinFieldType(mp->items[i].key, hashT, jsonobje, "data");
                 }
-                else
+                else {
                     WriteJsonValueByBinFieldType(mp->items[i].key, hashT, jsonobj, "keydata");
-                if ((mp->valueType >= BinType::CONTAINER && mp->valueType <= BinType::EMBEDDED) || 
-                     mp->valueType == BinType::MAP || mp->valueType == BinType::OPTION)
+                }
+                if (IsComplexBinType(mp->valueType))
                 {
                     cJSON* jsonobje = cJSON_CreateObject();
                     cJSON_AddItemToObject(jsonobj, "valuedata", jsonobje);
                     WriteJsonValueByBinFieldType(mp->items[i].value, hashT, jsonobje, "data");
                 }
-                else
+                else {
                     WriteJsonValueByBinFieldType(mp->items[i].value, hashT, jsonobj, "valuedata");
+                }
                 cJSON_AddItemToArray(jsonarr, jsonobj);
             }
             break;
@@ -285,7 +285,7 @@ BinField* ReadValuerFomJsonValue(BinType typebin, cJSON* json, uint8_t getobject
 
             for (i = 0, obj = cs->child; obj != NULL; obj = obj->next, i++)
             { 
-                if (tmpcs->valueType == BinType::POINTER || tmpcs->valueType == BinType::EMBEDDED)
+                if (IsPointerOrEmbedded(tmpcs->valueType))
                     tmpcs->items.emplace_back(ReadValuerFomJsonValue(tmpcs->valueType, obj->child, 0));
                 else
                     tmpcs->items.emplace_back(ReadValuerFomJsonValue(tmpcs->valueType, obj, 0));           
@@ -303,6 +303,7 @@ BinField* ReadValuerFomJsonValue(BinType typebin, cJSON* json, uint8_t getobject
             {
                 tmppe->name = HashFromString(pe->string);
                 tmppe->items.reserve(cJSON_GetArraySize(pe));
+
                 for (i = 0, obj = pe->child; obj != NULL; obj = obj->next, i++)
                 {
                     EPField field;
@@ -325,7 +326,7 @@ BinField* ReadValuerFomJsonValue(BinType typebin, cJSON* json, uint8_t getobject
 
             for (i = 0, obj = op->child; obj != NULL; obj = obj->next, i++)
             {
-                if ((tmpo->valueType >= BinType::CONTAINER && tmpo->valueType <= BinType::EMBEDDED))
+                if (IsComplexBinType(tmpo->valueType))
                     tmpo->items.emplace_back(ReadValuerFomJsonValue(tmpo->valueType, obj->child, 0));
                 else
                     tmpo->items.emplace_back(ReadValuerFomJsonValue(tmpo->valueType, obj, 0));
@@ -352,9 +353,9 @@ BinField* ReadValuerFomJsonValue(BinType typebin, cJSON* json, uint8_t getobject
                 key = cJSON_GetObjectItem(obj, "keydata");
                 value = cJSON_GetObjectItem(obj, "valuedata");
 
-                if (tmpmap->keyType == BinType::POINTER || tmpmap->keyType == BinType::EMBEDDED)
+                if (IsPointerOrEmbedded(tmpmap->keyType))
                     key = key->child;
-                if (tmpmap->valueType == BinType::POINTER || tmpmap->valueType == BinType::EMBEDDED)
+                if (IsPointerOrEmbedded(tmpmap->valueType))
                     value = value->child;
 
                 pairField.key = ReadValuerFomJsonValue(tmpmap->keyType, key, 0);
@@ -417,7 +418,10 @@ int main(int argc, char** argv)
         cJSON* root = cJSON_CreateObject();
 
         if (packet.m_isPatch)
-            cJSON_AddItemToObject(root, "signature", cJSON_CreateString("PTCH"));
+        {
+            cJSON_AddItemToObject(root, "Signature", cJSON_CreateString("PTCH"));
+            cJSON_AddItemToObject(root, "Unknown", cJSON_CreateNumber(&packet.m_Unknown, jUInt64));
+        }
         else
             cJSON_AddItemToObject(root, "Signature", cJSON_CreateString("PROP"));
 
@@ -426,29 +430,55 @@ int main(int argc, char** argv)
         if (packet.m_Version >= 2)
         {
             cJSON* linkedListarray = cJSON_CreateArray();
+
             for (uint32_t i = 0; i < packet.m_linkedList.size(); i++)
                 cJSON_AddItemToArray(linkedListarray, cJSON_CreateString(packet.m_linkedList[i].c_str()));
+
             cJSON_AddItemToObject(root, "Linked", linkedListarray);
         }
 
         cJSON* entriesarray = cJSON_CreateObject();
         cJSON_AddItemToObject(root, "Entries", entriesarray);
 
-        Map* map = packet.m_entriesBin->data->map;
-        for (size_t i = 0; i < map->items.size(); i++)
+        Map* entriesMap = packet.m_entriesBin->data->map;
+        for (size_t i = 0; i < entriesMap->items.size(); i++)
         {
             cJSON* entry = cJSON_CreateObject();
             cJSON* entryarr = cJSON_CreateArray();
-            PointerOrEmbed* pe = map->items[i].value->data->pe;
-            cJSON_AddItemToObject(entriesarray, HashToString(hashT, map->items[i].key->data->ui32).c_str(), entry);
+
+            PointerOrEmbed* pe = entriesMap->items[i].value->data->pe;
+            cJSON_AddItemToObject(entriesarray, HashToString(hashT, entriesMap->items[i].key->data->ui32).c_str(), entry);
             cJSON_AddItemToObject(entry, HashToString(hashT, pe->name).c_str(), entryarr);
+
             for (size_t o = 0; o < pe->items.size(); o++)
             {
                 cJSON* entryobj = cJSON_CreateObject();
                 cJSON_AddItemToObject(entryobj, "name", cJSON_CreateString(HashToString(hashT, pe->items[o].key).c_str()));
                 cJSON_AddItemToObject(entryobj, "type", cJSON_CreateString(Type_strings[(uint8_t)pe->items[o].value->type]));
+
                 WriteJsonValueByBinFieldType(pe->items[o].value, hashT, entryobj, "data");
+
                 cJSON_AddItemToArray(entryarr, entryobj);
+            }
+        }
+
+        if (packet.m_isPatch && packet.m_Version >= 3)
+        {
+            cJSON* patchesarray = cJSON_CreateObject();
+            cJSON_AddItemToObject(root, "Patches", patchesarray);
+
+            Map* patchMap = packet.m_patchesBin->data->map;
+            for (size_t i = 0; i < patchMap->items.size(); i++)
+            {
+                cJSON* patch = cJSON_CreateObject();
+
+                PointerOrEmbed* pe = patchMap->items[i].value->data->pe;
+                cJSON_AddItemToObject(patchesarray, HashToString(hashT, patchMap->items[i].key->data->ui32).c_str(), patch);
+
+                cJSON_AddItemToObject(patch, "path", cJSON_CreateString(pe->items[0].value->data->string));
+
+                cJSON_AddItemToObject(patch, "type", cJSON_CreateString(Type_strings[(uint8_t)pe->items[1].value->type]));
+                WriteJsonValueByBinFieldType(pe->items[1].value, hashT, patch, "data");
             }
         }
 
@@ -520,6 +550,8 @@ int main(int argc, char** argv)
             packet.m_isPatch = true;
         }
 
+        if (packet.m_isPatch)
+            packet.m_Unknown = *(uint32_t*)cJSON_GetObjectItem(root, "Unknown")->value;
         packet.m_Version = *(uint32_t*)cJSON_GetObjectItem(root, "Version")->value;
 
         if (packet.m_Version >= 2)
@@ -576,9 +608,67 @@ int main(int argc, char** argv)
                 {
                     EPField field;
                     BinType typebin = FindTypeByString((char*)cJSON_GetObjectItem(obje, "type")->value);
+
                     field.key = HashFromString((char*)cJSON_GetObjectItem(obje, "name")->value);
                     field.value = ReadValuerFomJsonValue(typebin, obje, 1);
+
                     embed->items.emplace_back(field);
+                }
+            }
+        }
+
+        Map* patchMap = new Map;
+        patchMap->keyType = BinType::HASH;
+        patchMap->valueType = BinType::EMBEDDED;
+
+        packet.m_patchesBin = new BinField;
+        packet.m_patchesBin->type = BinType::MAP;
+        packet.m_patchesBin->data->map = patchMap;
+
+        if (packet.m_isPatch && packet.m_Version >= 3)
+        {
+            cJSON* patches = cJSON_GetObjectItem(root, "Patches");
+            uint32_t patchCount = cJSON_GetArraySize(patches);
+
+            if (patchCount > 0)
+            {
+                patchMap->items.reserve(patchCount);
+                for (i = 0, obj = patches->child; obj != NULL; obj = obj->next, i++)
+                {
+                    PointerOrEmbed* embed = new PointerOrEmbed;
+                    embed->name = patchFNV;
+
+                    BinField* embedValue = new BinField;
+                    embedValue->parent = packet.m_patchesBin;
+                    embedValue->type = BinType::EMBEDDED;
+                    embedValue->data->pe = embed;
+
+                    BinField* stringBin = new BinField;
+                    stringBin->parent = embedValue;
+                    stringBin->type = BinType::STRING;
+                    stringBin->data->string = (char*)cJSON_GetObjectItem(obj, "path")->value;
+
+                    EPField firstField;
+                    firstField.key = pathFNV;
+                    firstField.value = stringBin;
+                    embed->items.emplace_back(firstField);
+
+                    BinType typebin = FindTypeByString((char*)cJSON_GetObjectItem(obj, "type")->value);
+
+                    EPField secondField;
+                    secondField.key = valueFNV;
+                    secondField.value = ReadValuerFomJsonValue(typebin, obj, 1);
+                    embed->items.emplace_back(secondField);
+
+                    BinField* hashKey = new BinField;
+                    hashKey->parent = packet.m_patchesBin;
+                    hashKey->type = BinType::HASH;
+                    hashKey->data->ui32 = HashFromString(obj->string);
+
+                    MapPair pair;
+                    pair.key = hashKey;
+                    pair.value = embedValue;
+                    patchMap->items.emplace_back(pair);
                 }
             }
         }

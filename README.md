@@ -1,9 +1,13 @@
 # BinReader
 League Of Legends Bin Reader And Writter
 
-Help From: https://github.com/moonshadow565/ritobin, https://github.com/LoL-Fantome/Fantome.Libraries.League and https://github.com/DaveGamble/cJSON for json parser
+## Help From:
+* https://github.com/moonshadow565/ritobin
+* https://github.com/LoL-Fantome/LeagueToolkit
+* https://github.com/CommunityDragon/CDTB
+* https://github.com/DaveGamble/cJSON
 
-How to use: 
+## How to use: 
 
 decode bin to json:
 ```

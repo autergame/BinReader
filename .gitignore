@@ -4,8 +4,8 @@
 *.ipdb
 Debug/
 x64/Debug
-BinReader/Debug/
 BinReader/DebugWR/
+BinReader/Debug/
 BinReader/Release/
 BinReader/x64/Debug/
 BinReader/x64/Release/

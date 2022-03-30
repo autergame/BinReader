@@ -30,16 +30,6 @@
 #include <float.h>
 #include <inttypes.h>
 
-#ifdef _WIN64
-typedef uint64_t sizem_t;
-#define SIZEM_MAX _I64_MAX
-#define SIZEM_MIN _I64_MIN
-#else
-typedef uint32_t sizem_t;
-#define SIZEM_MAX INT_MAX
-#define SIZEM_MIN INT_MIN
-#endif
-
 enum jType
 {
     jinvalid = 0,
@@ -49,8 +39,7 @@ enum jType
     jnumber = 4,
     jstring = 6,
     jarray = 7,
-    jobject = 8,
-    jraw = 9
+    jobject = 8
 };
 
 enum jnType
@@ -92,26 +81,28 @@ struct cJSON
 
 struct error
 {
-    const uint8_t* json;
+    const char* json;
     int position;
 };
-static error global_error = { NULL, 0 };
+static error global_error = { nullptr, 0 };
 
 const char* cJSON_GetErrorPtr()
 {
-    return (const char*)(global_error.json + global_error.position);
+    return global_error.json + global_error.position;
 }
 
 static char* cJSON_strdup(const char* string)
 {
-    if (string == NULL)
-    {
-        return NULL;
-    }
+    if (string == nullptr)
+        return nullptr;
 
-    sizem_t length = strlen(string);
+    size_t length = strlen(string);
     char* copy = (char*)calloc(length + 1, 1);
-    memcpy(copy, string, length);
+    if (copy == nullptr)
+        return nullptr;
+
+    if (memcpy(copy, string, length) != copy)
+        return nullptr;
 
     return copy;
 }
@@ -124,8 +115,8 @@ static cJSON* cJSON_New_Item()
 
 void cJSON_Delete(cJSON* item)
 {
-    cJSON* next = NULL;
-    while (item != NULL)
+    cJSON* next = nullptr;
+    while (item != nullptr)
     {
         next = item->next;
         free(item);
@@ -135,29 +126,25 @@ void cJSON_Delete(cJSON* item)
 
 struct parse_buffer
 {
-    const uint8_t* content;
-    sizem_t length;
-    sizem_t offset;
-    sizem_t depth;
+    const char* content;
+    size_t length;
+    size_t offset;
+    int depth;
 };
 
-#define can_read(buffer, size) ((buffer != NULL) && (((buffer)->offset + size) <= (buffer)->length))
-#define can_access_at_index(buffer, index) ((buffer != NULL) && (((buffer)->offset + index) < (buffer)->length))
-#define cannot_access_at_index(buffer, index) (!can_access_at_index(buffer, index))
+#define can_read(buffer, size) ((buffer != nullptr) && (((buffer)->offset + size) <= (buffer)->length))
+#define can_access_at_index(buffer, index) ((buffer != nullptr) && (((buffer)->offset + index) < (buffer)->length))
 #define buffer_at_offset(buffer) ((buffer)->content + (buffer)->offset)
 
-static uint8_t parse_number(cJSON* const item, parse_buffer* const input_buffer)
+static bool parse_number(cJSON* item, parse_buffer* input_buffer)
 {
-    sizem_t i, length = 0;
-    char number_c_string[32];
-    uint8_t floate = 0, minus = 0;
+    char number_c_string[32] = { '\0' };
+    bool floate = false, minus = false;
 
-    if ((input_buffer == NULL) || (input_buffer->content == NULL))
-    {
-        return 0;
-    }
+    if ((input_buffer == nullptr) || (input_buffer->content == nullptr))
+        return false;
 
-    for (i = 0; (i < (sizeof(number_c_string) - 1)) && can_access_at_index(input_buffer, i); i++)
+    for (int i = 0; (i < (sizeof(number_c_string) - 1)) && can_access_at_index(input_buffer, i); i++)
     {
         switch (buffer_at_offset(input_buffer)[i])
         {
@@ -178,26 +165,24 @@ static uint8_t parse_number(cJSON* const item, parse_buffer* const input_buffer)
                 break;
             case '-':
             {
-                minus = 1;
+                minus = false;
                 number_c_string[i] = '-';
                 break;
             }
             case '.':
             {
-                floate = 1;
+                floate = true;
                 number_c_string[i] = '.';
                 break;
             }
             default:
-                goto loop_end;
+                break;
         }
     }
-loop_end:
-    number_c_string[i] = '\0';
 
-    length = strlen(number_c_string);
+    size_t length = strlen(number_c_string);
     if (length == 0)
-        return 0;
+        return false;
 
     item->type = jnumber;
     if (floate)
@@ -223,73 +208,39 @@ loop_end:
     }
 
     input_buffer->offset += length;
-    return 1;
+    return true;
 }
 
 struct printbuffer
 {
-    uint8_t* buffer;
-    sizem_t length;
-    sizem_t offset;
-    sizem_t depth;        
-    uint8_t noalloc;
-    uint8_t format;        
+    char* buffer;
+    int length;
+    size_t offset;
+    int depth;
+    bool format;
 };
 
-static uint8_t* ensure(printbuffer* const p, sizem_t needed)
+static char* ensure(printbuffer* p, int needed)
 {
-    uint8_t* newbuffer = NULL;
-    sizem_t newsize = 0;
-
-    if ((p == NULL) || (p->buffer == NULL))
-    {
-        return NULL;
-    }
+    if ((p == nullptr) || (p->buffer == nullptr))
+        return nullptr;
 
     if ((p->length > 0) && (p->offset >= p->length))
-    {
-        return NULL;
-    }
-
-    if (needed > INT64_MAX)
-    {
-        return NULL;
-    }
+        return nullptr;
 
     needed += p->offset + 1;
     if (needed <= p->length)
-    {
         return p->buffer + p->offset;
-    }
 
-    if (p->noalloc) {
-        return NULL;
-    }
-
-    if (needed > (SIZE_MAX / 2))
-    {
-        if (needed <= SIZE_MAX)
-        {
-            newsize = SIZE_MAX;
-        }
-        else
-        {
-            return NULL;
-        }
-    }
-    else
-    {
-        newsize = needed * 2;
-    }
-
-    newbuffer = (uint8_t*)realloc(p->buffer, newsize);
-    if (newbuffer == NULL)
+    int newsize = needed * 2;
+    char* newbuffer = (char*)realloc(p->buffer, newsize);
+    if (newbuffer == nullptr)
     {
         free(p->buffer);
         p->length = 0;
-        p->buffer = NULL;
+        p->buffer = nullptr;
 
-        return NULL;
+        return nullptr;
     }
 
     p->length = newsize;
@@ -298,102 +249,106 @@ static uint8_t* ensure(printbuffer* const p, sizem_t needed)
     return newbuffer + p->offset;
 }
 
-static void update_offset(printbuffer* const buffer)
+static void update_offset(printbuffer* buffer)
 {
-    const uint8_t* buffer_pointer = NULL;
-    if ((buffer == NULL) || (buffer->buffer == NULL))
-    {
+    if ((buffer == nullptr) || (buffer->buffer == nullptr))
         return;
-    }
-    buffer_pointer = buffer->buffer + buffer->offset;
 
-    buffer->offset += strlen((const char*)buffer_pointer);
+    const char* buffer_pointer = buffer->buffer + buffer->offset;
+    buffer->offset += strlen(buffer_pointer);
 }
 
-static uint8_t print_number(const cJSON* const item, printbuffer* const output_buffer)
+static bool print_number(const cJSON* item, printbuffer* output_buffer)
 {
-    sizem_t i = 0;
-    int length = 0;
-    uint8_t* output_pointer = NULL;
-    uint8_t number_buffer[26] = { 0 };         
-
-    if (output_buffer == NULL)
-        return 0;
+    if (output_buffer == nullptr)
+        return false;
 
     if (item->typen == jFloat32)
     {
+        int length = 0;
+        char number_buffer[26] = { '\0' };
+
         float d = *(float*)item->value;
         if (isnan(d) || isinf(d))
-            length = sprintf((char*)number_buffer, "null");
+            length = sprintf(number_buffer, "nullptr");
         else
-            length = sprintf((char*)number_buffer, "%.9g", d);
+            length = sprintf(number_buffer, "%.9g", d);
 
-        uint8_t havepoint = 0;
-        for (i = 0; i < ((sizem_t)length); i++)
+        bool havepoint = false;
+        for (int i = 0; i < length; i++)
+        {
             if (number_buffer[i] == '.')
-                havepoint = 1;
+                havepoint = true;
+        }
 
-        if (havepoint == 0)
-            length = sprintf((char*)number_buffer, "%.9g.0", d);
+        if (!havepoint)
+            length = sprintf(number_buffer, "%.9g.0", d);
 
         if ((length < 0) || (length > (int)(sizeof(number_buffer) - 1)))
-            return 0;
+            return false;
 
-        output_pointer = ensure(output_buffer, (sizem_t)length + sizeof(""));
-        if (output_pointer == NULL)
-            return 0;
+        char* output_pointer = ensure(output_buffer, length + 1);
+        if (output_pointer == nullptr)
+            return false;
 
-        for (i = 0; i < ((sizem_t)length); i++)
+        for (int i = 0; i < length; i++)
             output_pointer[i] = number_buffer[i];
+
+        output_pointer[length] = '\0';
+        output_buffer->offset += length;
     }
     else
     {
+        int length = 0;
+        char number_buffer[26] = { '\0' };
+
         switch (item->typen)
         {
             case jSInt8:
-                length = sprintf((char*)number_buffer, "%" PRIi8, *(int8_t*)item->value);
+                length = sprintf(number_buffer, "%" PRIi8, *(int8_t*)item->value);
                 break;
             case jUInt8:
-                length = sprintf((char*)number_buffer, "%" PRIu8, *(uint8_t*)item->value);
+                length = sprintf(number_buffer, "%" PRIu8, *(uint8_t*)item->value);
                 break;
             case jSInt16:
-                length = sprintf((char*)number_buffer, "%" PRIi16, *(int16_t*)item->value);
+                length = sprintf(number_buffer, "%" PRIi16, *(int16_t*)item->value);
                 break;
             case jUInt16:
-                length = sprintf((char*)number_buffer, "%" PRIu16, *(uint16_t*)item->value);
+                length = sprintf(number_buffer, "%" PRIu16, *(uint16_t*)item->value);
                 break;
             case jSInt32:
-                length = sprintf((char*)number_buffer, "%" PRIi32, *(int32_t*)item->value);
+                length = sprintf(number_buffer, "%" PRIi32, *(int32_t*)item->value);
                 break;
             case jUInt32:
-                length = sprintf((char*)number_buffer, "%" PRIu32, *(uint32_t*)item->value);
+                length = sprintf(number_buffer, "%" PRIu32, *(uint32_t*)item->value);
                 break;
             case jSInt64:
-                length = sprintf((char*)number_buffer, "%" PRIi64, *(int64_t*)item->value);
+                length = sprintf(number_buffer, "%" PRIi64, *(int64_t*)item->value);
                 break;
             case jUInt64:
-                length = sprintf((char*)number_buffer, "%" PRIu64, *(uint64_t*)item->value);
+                length = sprintf(number_buffer, "%" PRIu64, *(uint64_t*)item->value);
                 break;
-        }     
-        output_pointer = ensure(output_buffer, (sizem_t)length + sizeof(""));
-        if (output_pointer == NULL)
-            return 0;
-        for (i = 0; i < ((sizem_t)length); i++)
+        }  
+
+        char* output_pointer = ensure(output_buffer, length + 1);
+        if (output_pointer == nullptr)
+            return false;
+
+        for (int i = 0; i < length; i++)
             output_pointer[i] = number_buffer[i];
+
+        output_pointer[length] = '\0';
+        output_buffer->offset += length;
     }
 
-    output_pointer[i] = '\0';
-    output_buffer->offset += (sizem_t)length;
-
-    return 1;
+    return true;
 }
 
-static unsigned parse_hex4(const uint8_t* const input)
+static uint32_t parse_hex4(const char* input)
 {
     uint32_t h = 0;
-    sizem_t i = 0;
 
-    for (i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
         if ((input[i] >= '0') && (input[i] <= '9'))
         {
@@ -421,50 +376,36 @@ static unsigned parse_hex4(const uint8_t* const input)
     return h;
 }
 
-static uint8_t utf16_literal_to_utf8(const uint8_t* const input_pointer, const uint8_t* const input_end, uint8_t** output_pointer)
+static int utf16_literal_to_utf8(const char* input_pointer, const char* input_end, char** output_pointer)
 {
     uint32_t codepoint = 0;
     uint32_t first_code = 0;
-    const uint8_t* first_sequence = input_pointer;
-    uint8_t utf8_length = 0;
-    uint8_t utf8_position = 0;
-    uint8_t sequence_length = 0;
-    uint8_t first_byte_mark = 0;
+    const char* first_sequence = input_pointer;
+    int utf8_length = 0, utf8_position = 0, sequence_length = 0, first_byte_mark = 0;
 
     if ((input_end - first_sequence) < 6)
-    {
         goto fail;
-    }
 
     first_code = parse_hex4(first_sequence + 2);
 
     if (((first_code >= 0xDC00) && (first_code <= 0xDFFF)))
-    {
         goto fail;
-    }
 
     if ((first_code >= 0xD800) && (first_code <= 0xDBFF))
     {
-        const uint8_t* second_sequence = first_sequence + 6;
+        const char* second_sequence = first_sequence + 6;
         uint32_t second_code = 0;
         sequence_length = 12;   
 
         if ((input_end - second_sequence) < 6)
-        {
             goto fail;
-        }
 
         if ((second_sequence[0] != '\\') || (second_sequence[1] != 'u'))
-        {
             goto fail;
-        }
 
         second_code = parse_hex4(second_sequence + 2);
         if ((second_code < 0xDC00) || (second_code > 0xDFFF))
-        {
             goto fail;
-        }
-
 
         codepoint = 0x10000 + (((first_code & 0x3FF) << 10) | (second_code & 0x3FF));
     }
@@ -520,95 +461,83 @@ fail:
     return 0;
 }
 
-static uint8_t parse_string(cJSON* const item, parse_buffer* const input_buffer)
+static bool parse_string(cJSON* item, parse_buffer* input_buffer)
 {
-    const uint8_t* input_pointer = buffer_at_offset(input_buffer) + 1;
-    const uint8_t* input_end = buffer_at_offset(input_buffer) + 1;
-    uint8_t* output_pointer = NULL;
-    uint8_t* output = NULL;
+    const char* input_pointer = buffer_at_offset(input_buffer) + 1;
+    const char* input_end = buffer_at_offset(input_buffer) + 1;
+    char* output_pointer = nullptr;
+    char* output = nullptr;
 
     if (buffer_at_offset(input_buffer)[0] != '\"')
-    {
         goto fail;
-    }
 
     {
-        sizem_t allocation_length = 0;
-        sizem_t skipped_bytes = 0;
-        while (((sizem_t)(input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\"'))
+        int allocation_length = 0;
+        int skipped_bytes = 0;
+        while (((input_end - input_buffer->content) < input_buffer->length) && (*input_end != '\"'))
         {
             if (input_end[0] == '\\')
             {
-                if ((sizem_t)(input_end + 1 - input_buffer->content) >= input_buffer->length)
-                {
+                if ((input_end + 1 - input_buffer->content) >= input_buffer->length)
                     goto fail;
-                }
+
                 skipped_bytes++;
                 input_end++;
             }
             input_end++;
         }
-        if (((sizem_t)(input_end - input_buffer->content) >= input_buffer->length) || (*input_end != '\"'))
-        {
+        if (((input_end - input_buffer->content) >= input_buffer->length) || (*input_end != '\"'))
             goto fail;     
-        }
 
-        allocation_length = (sizem_t)(input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
-        output = (uint8_t*)calloc(allocation_length + 1, 1);
-        if (output == NULL)
-        {
+        allocation_length = (input_end - buffer_at_offset(input_buffer)) - skipped_bytes;
+        output = (char*)calloc(allocation_length + 1, 1);
+        if (output == nullptr)
             goto fail;    
-        }
     }
 
     output_pointer = output;
     while (input_pointer < input_end)
     {
-        if (*input_pointer != '\\')
-        {
+        if (*input_pointer != '\\') {
             *output_pointer++ = *input_pointer++;
         }
         else
         {
-            uint8_t sequence_length = 2;
+            int sequence_length = 2;
             if ((input_end - input_pointer) < 1)
-            {
                 goto fail;
-            }
 
             switch (input_pointer[1])
             {
-            case 'b':
-                *output_pointer++ = '\b';
-                break;
-            case 'f':
-                *output_pointer++ = '\f';
-                break;
-            case 'n':
-                *output_pointer++ = '\n';
-                break;
-            case 'r':
-                *output_pointer++ = '\r';
-                break;
-            case 't':
-                *output_pointer++ = '\t';
-                break;
-            case '\"':
-            case '\\':
-            case '/':
-                *output_pointer++ = input_pointer[1];
-                break;
+                case 'b':
+                    *output_pointer++ = '\b';
+                    break;
+                case 'f':
+                    *output_pointer++ = '\f';
+                    break;
+                case 'n':
+                    *output_pointer++ = '\n';
+                    break;
+                case 'r':
+                    *output_pointer++ = '\r';
+                    break;
+                case 't':
+                    *output_pointer++ = '\t';
+                    break;
+                case '\"':
+                case '\\':
+                case '/':
+                    *output_pointer++ = input_pointer[1];
+                    break;
 
-            case 'u':
-                sequence_length = utf16_literal_to_utf8(input_pointer, input_end, &output_pointer);
-                if (sequence_length == 0)
-                {
+                case 'u':
+                    sequence_length = utf16_literal_to_utf8(input_pointer, input_end, &output_pointer);
+                    if (sequence_length == 0)
+                        goto fail;
+                    break;
+
+                default:
                     goto fail;
-                }
-                break;
-
-            default:
-                goto fail;
             }
             input_pointer += sequence_length;
         }
@@ -617,80 +546,66 @@ static uint8_t parse_string(cJSON* const item, parse_buffer* const input_buffer)
     *output_pointer = '\0';
 
     item->type = jstring;
-    item->value = (char*)output;
+    item->value = output;
 
-    input_buffer->offset = (sizem_t)(input_end - input_buffer->content);
+    input_buffer->offset = (input_end - input_buffer->content);
     input_buffer->offset++;
 
-    return 1;
+    return true;
 
 fail:
-    if (output != NULL)
-    {
+    if (output != nullptr)
         free(output);
-    }
 
-    if (input_pointer != NULL)
-    {
-        input_buffer->offset = (sizem_t)(input_pointer - input_buffer->content);
-    }
+    if (input_pointer != nullptr)
+        input_buffer->offset = (input_pointer - input_buffer->content);
 
-    return 0;
+    return false;
 }
 
-static uint8_t print_string_ptr(const uint8_t* const input, printbuffer* const output_buffer)
+static bool print_string_ptr(const char* input, printbuffer* output_buffer)
 {
-    const uint8_t* input_pointer = NULL;
-    uint8_t* output = NULL;
-    uint8_t* output_pointer = NULL;
-    sizem_t output_length = 0;
-    sizem_t escape_characters = 0;
+    const char* input_pointer = nullptr;
+    char* output = nullptr;
+    int escape_characters = 0;
 
-    if (output_buffer == NULL)
-    {
-        return 0;
-    }
+    if (output_buffer == nullptr)
+        return false;
 
-    if (input == NULL)
+    if (input == nullptr)
     {
         output = ensure(output_buffer, sizeof("\"\""));
-        if (output == NULL)
-        {
-            return 0;
-        }
-        strcpy((char*)output, "\"\"");
+        if (output == nullptr)
+            return false;
 
-        return 1;
+        strcpy(output, "\"\"");
+        return false;
     }
 
     for (input_pointer = input; *input_pointer; input_pointer++)
     {
         switch (*input_pointer)
         {
-        case '\"':
-        case '\\':
-        case '\b':
-        case '\f':
-        case '\n':
-        case '\r':
-        case '\t':
-            escape_characters++;
-            break;
-        default:
-            if (*input_pointer < 32)
-            {
-                escape_characters += 5;
-            }
-            break;
+            case '\"':
+            case '\\':
+            case '\b':
+            case '\f':
+            case '\n':
+            case '\r':
+            case '\t':
+                escape_characters++;
+                break;
+            default:
+                if (*input_pointer < 32)
+                    escape_characters += 5;
+                break;
         }
     }
-    output_length = (sizem_t)(input_pointer - input) + escape_characters;
+    int output_length = (input_pointer - input) + escape_characters;
 
     output = ensure(output_buffer, output_length + sizeof("\"\""));
-    if (output == NULL)
-    {
-        return 0;
-    }
+    if (output == nullptr)
+        return false;
 
     if (escape_characters == 0)
     {
@@ -699,15 +614,14 @@ static uint8_t print_string_ptr(const uint8_t* const input, printbuffer* const o
         output[output_length + 1] = '\"';
         output[output_length + 2] = '\0';
 
-        return 1;
+        return true;
     }
 
     output[0] = '\"';
-    output_pointer = output + 1;
+    char* output_pointer = output + 1;
     for (input_pointer = input; *input_pointer != '\0'; (void)input_pointer++, output_pointer++)
     {
-        if ((*input_pointer > 31) && (*input_pointer != '\"') && (*input_pointer != '\\'))
-        {
+        if ((*input_pointer > 31) && (*input_pointer != '\"') && (*input_pointer != '\\')) {
             *output_pointer = *input_pointer;
         }
         else
@@ -715,179 +629,151 @@ static uint8_t print_string_ptr(const uint8_t* const input, printbuffer* const o
             *output_pointer++ = '\\';
             switch (*input_pointer)
             {
-            case '\\':
-                *output_pointer = '\\';
-                break;
-            case '\"':
-                *output_pointer = '\"';
-                break;
-            case '\b':
-                *output_pointer = 'b';
-                break;
-            case '\f':
-                *output_pointer = 'f';
-                break;
-            case '\n':
-                *output_pointer = 'n';
-                break;
-            case '\r':
-                *output_pointer = 'r';
-                break;
-            case '\t':
-                *output_pointer = 't';
-                break;
-            default:
-                sprintf((char*)output_pointer, "u%04x", *input_pointer);
-                output_pointer += 4;
-                break;
+                case '\\':
+                    *output_pointer = '\\';
+                    break;
+                case '\"':
+                    *output_pointer = '\"';
+                    break;
+                case '\b':
+                    *output_pointer = 'b';
+                    break;
+                case '\f':
+                    *output_pointer = 'f';
+                    break;
+                case '\n':
+                    *output_pointer = 'n';
+                    break;
+                case '\r':
+                    *output_pointer = 'r';
+                    break;
+                case '\t':
+                    *output_pointer = 't';
+                    break;
+                default:
+                    sprintf(output_pointer, "u%04x", *input_pointer);
+                    output_pointer += 4;
+                    break;
             }
         }
     }
     output[output_length + 1] = '\"';
     output[output_length + 2] = '\0';
 
-    return 1;
+    return true;
 }
 
-static uint8_t print_string(const cJSON* const item, printbuffer* const p)
+static int print_string(const cJSON* item, printbuffer* p)
 {
-    return print_string_ptr((uint8_t*)item->value, p);
+    return print_string_ptr((char*)item->value, p);
 }
 
-static uint8_t parse_value(cJSON* const item, parse_buffer* const input_buffer);
-static uint8_t print_value(const cJSON* const item, printbuffer* const output_buffer);
-static uint8_t parse_array(cJSON* const item, parse_buffer* const input_buffer);
-static uint8_t print_array(const cJSON* const item, printbuffer* const output_buffer);
-static uint8_t parse_object(cJSON* const item, parse_buffer* const input_buffer);
-static uint8_t print_object(const cJSON* const item, printbuffer* const output_buffer);
+static bool parse_value(cJSON* item, parse_buffer* input_buffer);
+static bool print_value(const cJSON* item, printbuffer* output_buffer);
 
-static parse_buffer* buffer_skip_whitespace(parse_buffer* const buffer)
+static bool parse_array(cJSON* item, parse_buffer* input_buffer);
+static bool print_array(const cJSON* item, printbuffer* output_buffer);
+
+static bool parse_object(cJSON* item, parse_buffer* input_buffer);
+static bool print_object(const cJSON* item, printbuffer* output_buffer);
+
+static parse_buffer* buffer_skip_whitespace(parse_buffer* buffer)
 {
-    if ((buffer == NULL) || (buffer->content == NULL))
-    {
-        return NULL;
-    }
+    if ((buffer == nullptr) || (buffer->content == nullptr))
+        return nullptr;
 
-    if (cannot_access_at_index(buffer, 0))
-    {
+    if (!can_access_at_index(buffer, 0))
         return buffer;
-    }
 
     while (can_access_at_index(buffer, 0) && (buffer_at_offset(buffer)[0] <= 32))
-    {
         buffer->offset++;
-    }
 
     if (buffer->offset == buffer->length)
-    {
         buffer->offset--;
-    }
 
     return buffer;
 }
 
-static parse_buffer* skip_utf8_bom(parse_buffer* const buffer)
+static parse_buffer* skip_utf8_bom(parse_buffer* buffer)
 {
-    if ((buffer == NULL) || (buffer->content == NULL) || (buffer->offset != 0))
-    {
-        return NULL;
-    }
+    if ((buffer == nullptr) || (buffer->content == nullptr) || (buffer->offset != 0))
+        return nullptr;
 
-    if (can_access_at_index(buffer, 4) && (strncmp((const char*)buffer_at_offset(buffer), "\xEF\xBB\xBF", 3) == 0))
+    if (can_access_at_index(buffer, 4))     
     {
-        buffer->offset += 3;
+        if (strncmp(buffer_at_offset(buffer), "\xEF\xBB\xBF", 3) == 0)
+            buffer->offset += 3;
     }
 
     return buffer;
 }
 
-cJSON* cJSON_ParseWithLengthOpts(const char* value, sizem_t buffer_length, const char** return_parse_end, uint8_t require_null_terminated)
+cJSON* cJSON_ParseWithLengthOpts(const char* value, size_t buffer_length, const char** return_parse_end, int require_nullptr_terminated)
 {
     parse_buffer buffer = { 0, 0, 0, 0 };
-    cJSON* item = NULL;
+    cJSON* item = nullptr;
 
-    global_error.json = NULL;
+    global_error.json = nullptr;
     global_error.position = 0;
 
-    if (value == NULL || 0 == buffer_length)
-    {
+    if (value == nullptr || buffer_length == 0)
         goto fail;
-    }
 
-    buffer.content = (const uint8_t*)value;
+    buffer.content = value;
     buffer.length = buffer_length;
     buffer.offset = 0;
 
     item = cJSON_New_Item();
-    if (item == NULL)    
-    {
+    if (item == nullptr)    
         goto fail;
-    }
 
     if (!parse_value(item, buffer_skip_whitespace(skip_utf8_bom(&buffer))))
-    {
         goto fail;
-    }
 
-    if (require_null_terminated)
+    if (require_nullptr_terminated)
     {
         buffer_skip_whitespace(&buffer);
         if ((buffer.offset >= buffer.length) || buffer_at_offset(&buffer)[0] != '\0')
-        {
             goto fail;
-        }
     }
     if (return_parse_end)
-    {
-        *return_parse_end = (const char*)buffer_at_offset(&buffer);
-    }
+        *return_parse_end = buffer_at_offset(&buffer);
 
     return item;
 
 fail:
-    if (item != NULL)
-    {
+    if (item != nullptr)
         cJSON_Delete(item);
-    }
 
-    if (value != NULL)
+    if (value != nullptr)
     {
         error local_error;
-        local_error.json = (const uint8_t*)value;
+        local_error.json = value;
         local_error.position = 0;
 
-        if (buffer.offset < buffer.length)
-        {
+        if (buffer.offset < buffer.length) {
             local_error.position = (int)buffer.offset;
         }
-        else if (buffer.length > 0)
-        {
+        else if (buffer.length > 0) {
             local_error.position = (int)buffer.length - 1;
         }
 
-        if (return_parse_end != NULL)
-        {
-            *return_parse_end = (const char*)local_error.json + local_error.position;
-        }
+        if (return_parse_end != nullptr)
+            *return_parse_end = local_error.json + local_error.position;
 
         global_error = local_error;
     }
 
-    return NULL;
+    return nullptr;
 }
 
-cJSON* cJSON_ParseWithOpts(const char* value, const char** return_parse_end, uint8_t require_null_terminated)
+cJSON* cJSON_ParseWithOpts(const char* value, const char** return_parse_end, int require_nullptr_terminated)
 {
-    sizem_t buffer_length;
+    if (value == nullptr)
+        return nullptr;
 
-    if (NULL == value)
-    {
-        return NULL;
-    }
-
-    buffer_length = strlen(value) + sizeof("");
-
-    return cJSON_ParseWithLengthOpts(value, buffer_length, return_parse_end, require_null_terminated);
+    size_t buffer_length = strlen(value) + 1;
+    return cJSON_ParseWithLengthOpts(value, buffer_length, return_parse_end, require_nullptr_terminated);
 }
 
 cJSON* cJSON_Parse(const char* value)
@@ -895,203 +781,171 @@ cJSON* cJSON_Parse(const char* value)
     return cJSON_ParseWithOpts(value, 0, 0);
 }
 
-cJSON* cJSON_ParseWithLength(const char* value, sizem_t buffer_length)
+cJSON* cJSON_ParseWithLength(const char* value, size_t buffer_length)
 {
     return cJSON_ParseWithLengthOpts(value, buffer_length, 0, 0);
 }
 
 #define cjson_min(a, b) (((a) < (b)) ? (a) : (b))
 
-char* cJSON_Print(const cJSON* const item, uint8_t format)
+char* cJSON_Print(const cJSON* item, bool format)
 {
-    static const sizem_t default_buffer_size = 256;
-    printbuffer buffer[1];
-    char* printed = NULL;
+    char* printed = nullptr;
 
-    memset(buffer, 0, sizeof(buffer));
-
-    buffer->buffer = (uint8_t*)calloc(default_buffer_size, 1);
-    buffer->length = default_buffer_size;
-    buffer->format = format;
-    if (buffer->buffer == NULL)
-    {
+    printbuffer buffer = { nullptr, 0, 0, 0, false};
+    buffer.buffer = (char*)calloc(256, 1);
+    buffer.length = 256;
+    buffer.format = format;
+    if (buffer.buffer == nullptr)
         goto fail;
-    }
 
-    if (!print_value(item, buffer))
-    {
+    if (!print_value(item, &buffer))
         goto fail;
-    }
-    update_offset(buffer);
 
-    printed = (char*)realloc(buffer->buffer, buffer->offset + 1);
-    if (printed == NULL) {
+    update_offset(&buffer);
+
+    printed = (char*)realloc(buffer.buffer, buffer.offset + 1);
+    if (printed == nullptr)
         goto fail;
-    }
-    buffer->buffer = NULL;
+
+    buffer.buffer = nullptr;
 
     return printed;
 
 fail:
-    if (buffer->buffer != NULL)
-    {
-        free(buffer->buffer);
-    }
+    if (buffer.buffer != nullptr)
+        free(buffer.buffer);
 
-    if (printed != NULL)
-    {
+    if (printed != nullptr)
         free(printed);
-    }
 
-    return NULL;
+    return nullptr;
 }
 
-static uint8_t parse_value(cJSON* const item, parse_buffer* const input_buffer)
+static bool parse_value(cJSON* item, parse_buffer* input_buffer)
 {
-    if ((input_buffer == NULL) || (input_buffer->content == NULL))
-    {
-        return 0;    
-    }
+    if ((input_buffer == nullptr) || (input_buffer->content == nullptr))
+        return false;    
+
     uint32_t* number = (uint32_t*)calloc(1, 4);
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "null", 4) == 0))
+    if (can_read(input_buffer, 4))
     {
-        item->type = jnull;
-        input_buffer->offset += 4;
-        return 1;
+        if (strncmp(buffer_at_offset(input_buffer), "null", 4) == 0)
+        {
+            item->type = jnull;
+            input_buffer->offset += 4;
+            return true;
+        }
     }
-    if (can_read(input_buffer, 5) && (strncmp((const char*)buffer_at_offset(input_buffer), "false", 5) == 0))
+    if (can_read(input_buffer, 5))
     {
-        *number = 0;
-        item->type = jfalse;
-        item->value = number;
-        input_buffer->offset += 5;
-        return 1;
+        if (strncmp(buffer_at_offset(input_buffer), "false", 5) == 0)
+        {
+            *number = 0;
+            item->type = jfalse;
+            item->value = number;
+            input_buffer->offset += 5;
+            return true;
+        }
     }
-    if (can_read(input_buffer, 4) && (strncmp((const char*)buffer_at_offset(input_buffer), "true", 4) == 0))
+    if (can_read(input_buffer, 4))
     {
-        *number = 1;
-        item->type = jtrue;
-        item->value = number;
-        input_buffer->offset += 4;
-        return 1;
+        if (strncmp(buffer_at_offset(input_buffer), "true", 4) == 0)
+        {
+            *number = 1;
+            item->type = jtrue;
+            item->value = number;
+            input_buffer->offset += 4;
+            return true;
+        }
     }
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '\"'))
-    {
-        return parse_string(item, input_buffer);
-    }
-    if (can_access_at_index(input_buffer, 0) && ((buffer_at_offset(input_buffer)[0] == '-') || ((buffer_at_offset(input_buffer)[0] >= '0') && (buffer_at_offset(input_buffer)[0] <= '9'))))
-    {
-        return parse_number(item, input_buffer);
-    }
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '['))
-    {
-        return parse_array(item, input_buffer);
-    }
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '{'))
-    {
-        return parse_object(item, input_buffer);
-    }
+    if (can_access_at_index(input_buffer, 0))
+        if (buffer_at_offset(input_buffer)[0] == '\"')
+            return parse_string(item, input_buffer);
 
-    return 0;
+    if (can_access_at_index(input_buffer, 0))
+        if ((buffer_at_offset(input_buffer)[0] == '-') || ((buffer_at_offset(input_buffer)[0] >= '0') && (buffer_at_offset(input_buffer)[0] <= '9')))
+            return parse_number(item, input_buffer);
+
+    if (can_access_at_index(input_buffer, 0))  
+        if (buffer_at_offset(input_buffer)[0] == '[')
+            return parse_array(item, input_buffer);
+
+    if (can_access_at_index(input_buffer, 0))
+        if (buffer_at_offset(input_buffer)[0] == '{')
+            return parse_object(item, input_buffer);
+
+    return false;
 }
 
-static uint8_t print_value(const cJSON* const item, printbuffer* const output_buffer)
+static bool print_value(const cJSON* item, printbuffer* output_buffer)
 {
-    uint8_t* output = NULL;
+    if ((item == nullptr) || (output_buffer == nullptr))
+        return false;
 
-    if ((item == NULL) || (output_buffer == NULL))
-    {
-        return 0;
-    }
-
+    char* output = nullptr;
     switch (item->type)
     {
-    case jnull:
-        output = ensure(output_buffer, 5);
-        if (output == NULL)
-        {
-            return 0;
-        }
-        strcpy((char*)output, "null");
-        return 1;
+        case jnull:
+            output = ensure(output_buffer, 5);
+            if (output == nullptr)
+                return false;
 
-    case jfalse:
-        output = ensure(output_buffer, 6);
-        if (output == NULL)
-        {
-            return 0;
-        }
-        strcpy((char*)output, "false");
-        return 1;
+            strcpy(output, "null");
+            return true;
 
-    case jtrue:
-        output = ensure(output_buffer, 5);
-        if (output == NULL)
-        {
-            return 0;
-        }
-        strcpy((char*)output, "true");
-        return 1;
+        case jfalse:
+            output = ensure(output_buffer, 6);
+            if (output == nullptr)
+                return false;
 
-    case jnumber:
-        return print_number(item, output_buffer);
+            strcpy(output, "false");
+            return true;
 
-    case jraw:
-    {
-        sizem_t raw_length = 0;
-        if (item->value == NULL)
-        {
-            return 0;
-        }
+        case jtrue:
+            output = ensure(output_buffer, 5);
+            if (output == nullptr)
+                return false;
 
-        raw_length = strlen((char*)item->value) + sizeof("");
-        output = ensure(output_buffer, raw_length);
-        if (output == NULL)
-        {
-            return 0;
-        }
-        memcpy(output, item->value, raw_length);
-        return 1;
+            strcpy(output, "true");
+            return true;
+
+        case jnumber:
+            return print_number(item, output_buffer);
+
+        case jstring:
+            return print_string(item, output_buffer);
+
+        case jarray:
+            return print_array(item, output_buffer);
+
+        case jobject:
+            return print_object(item, output_buffer);
     }
 
-    case jstring:
-        return print_string(item, output_buffer);
-
-    case jarray:
-        return print_array(item, output_buffer);
-
-    case jobject:
-        return print_object(item, output_buffer);
-
-    default:
-        return 0;
-    }
+    return false;
 }
 
-static uint8_t parse_array(cJSON* const item, parse_buffer* const input_buffer)
+static bool parse_array(cJSON* item, parse_buffer* input_buffer)
 {
-    cJSON* head = NULL;       
-    cJSON* current_item = NULL;
-
     if (input_buffer->depth >= CJSON_NESTING_LIMIT)
-    {
-        return 0;     
-    }
+        return false; 
+
     input_buffer->depth++;
 
+    cJSON* head = nullptr;
+    cJSON* current_item = nullptr;
+
     if (buffer_at_offset(input_buffer)[0] != '[')
-    {
         goto fail;
-    }
 
     input_buffer->offset++;
     buffer_skip_whitespace(input_buffer);
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == ']'))
-    {
-        goto success;
-    }
+    if (can_access_at_index(input_buffer, 0))
+        if (buffer_at_offset(input_buffer)[0] == ']')
+            goto success;
 
-    if (cannot_access_at_index(input_buffer, 0))
+    if (!can_access_at_index(input_buffer, 0))
     {
         input_buffer->offset--;
         goto fail;
@@ -1101,13 +955,10 @@ static uint8_t parse_array(cJSON* const item, parse_buffer* const input_buffer)
     do
     {
         cJSON* new_item = cJSON_New_Item();
-        if (new_item == NULL)
-        {
+        if (new_item == nullptr)
             goto fail;    
-        }
 
-        if (head == NULL)
-        {
+        if (head == nullptr) {
             current_item = head = new_item;
         }
         else
@@ -1120,118 +971,99 @@ static uint8_t parse_array(cJSON* const item, parse_buffer* const input_buffer)
         input_buffer->offset++;
         buffer_skip_whitespace(input_buffer);
         if (!parse_value(current_item, input_buffer))
-        {
             goto fail;      
-        }
+
         buffer_skip_whitespace(input_buffer);
     } while (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == ','));
 
-    if (cannot_access_at_index(input_buffer, 0) || buffer_at_offset(input_buffer)[0] != ']')
-    {
+    if (!can_access_at_index(input_buffer, 0) || buffer_at_offset(input_buffer)[0] != ']')
         goto fail;      
-    }
 
 success:
     input_buffer->depth--;
 
-    if (head != NULL) {
+    if (head != nullptr)
         head->prev = current_item;
-    }
 
     item->type = jarray;
     item->child = head;
 
     input_buffer->offset++;
 
-    return 1;
+    return true;
 
 fail:
-    if (head != NULL)
-    {
+    if (head != nullptr)
         cJSON_Delete(head);
-    }
 
-    return 0;
+    return false;
 }
 
-static uint8_t print_array(const cJSON* const item, printbuffer* const output_buffer)
+static bool print_array(const cJSON* item, printbuffer* output_buffer)
 {
-    uint8_t* output_pointer = NULL;
-    sizem_t length = 0;
-    cJSON* current_element = item->child;
-    sizem_t i;
+    if (output_buffer == nullptr)
+        return false;
 
-    if (output_buffer == NULL)
-    {
-        return 0;
-    }
-
-    output_pointer = ensure(output_buffer, 1);
-    if (output_pointer == NULL)
-    {
-        return 0;
-    }
+    char* output_pointer = ensure(output_buffer, 1);
+    if (output_pointer == nullptr)
+        return false;
 
     *output_pointer = '[';
     output_buffer->offset++;
     output_buffer->depth++;
 
-    if (current_element != NULL)
+    cJSON* current_element = item->child;
+    if (current_element != nullptr)
     {
         if (output_buffer->format && current_element->type != jobject)
         {
             output_pointer = ensure(output_buffer, output_buffer->depth + 1);
-            if (output_pointer == NULL)
-            {
-                return 0;
-            }
+            if (output_pointer == nullptr)
+                return false;
 
             *output_pointer++ = '\n';
 
-            for (i = 0; i < output_buffer->depth; i++)
-            {
+            for (int i = 0; i < output_buffer->depth; i++)
                 *output_pointer++ = '\t';
-            }
 
             output_buffer->offset += output_buffer->depth + 1;
         }
     }
 
-    while (current_element != NULL)
+    while (current_element != nullptr)
     {
         if (!print_value(current_element, output_buffer))
-        {
-            return 0;
-        }
+            return false;
+
         update_offset(output_buffer);
         if (current_element->next)
         {
+            int length = 0;
             if (output_buffer->format)
-                if (current_element->type == jobject || current_element->type == jnumber)
-                    length = (sizem_t)2;
-                else
-                    length = (sizem_t)2 + output_buffer->depth;
-            else
-                length = (sizem_t)1;
-            output_pointer = ensure(output_buffer, length);
-            if (output_pointer == NULL)
             {
-                return 0;
+                if (current_element->type == jobject || current_element->type == jnumber)
+                    length = 2;
+                else
+                    length = 2 + output_buffer->depth;
             }
+            else {
+                length = 1;
+            }
+            output_pointer = ensure(output_buffer, length);
+            if (output_pointer == nullptr)
+                return false;
+
             *output_pointer++ = ',';
             if (output_buffer->format)
             {
-                if (current_element->type == jobject || current_element->type == jnumber)
-                {
+                if (current_element->type == jobject || current_element->type == jnumber) {
                     *output_pointer++ = ' ';
                 }
                 else
                 {
                     *output_pointer++ = '\n';
-                    for (i = 0; i < output_buffer->depth; i++)
-                    {
+                    for (int i = 0; i < output_buffer->depth; i++)
                         *output_pointer++ = '\t';
-                    }
                 }
             }
             *output_pointer = '\0';
@@ -1243,57 +1075,47 @@ static uint8_t print_array(const cJSON* const item, printbuffer* const output_bu
     if (output_buffer->format)
     {
         output_pointer = ensure(output_buffer, output_buffer->depth);
-        if (output_pointer == NULL)
-        {
-            return 0;
-        }
+        if (output_pointer == nullptr)
+            return false;
 
         *output_pointer++ = '\n';
-
-        for (i = 0; i < output_buffer->depth - 1; i++)
-        {
+        for (int i = 0; i < output_buffer->depth - 1; i++)
             *output_pointer++ = '\t';
-        }
 
         output_buffer->offset += output_buffer->depth;
     }
 
     output_pointer = ensure(output_buffer, 2);
-    if (output_pointer == NULL)
-    {
-        return 0;
-    }
+    if (output_pointer == nullptr)
+        return false;
+
     *output_pointer++ = ']';
     *output_pointer = '\0';
     output_buffer->depth--;
 
-    return 1;
+    return true;
 }
 
-static uint8_t parse_object(cJSON* const item, parse_buffer* const input_buffer)
+static bool parse_object(cJSON* item, parse_buffer* input_buffer)
 {
-    cJSON* head = NULL;     
-    cJSON* current_item = NULL;
-
     if (input_buffer->depth >= CJSON_NESTING_LIMIT)
-    {
-        return 0;     
-    }
+        return false;     
+
     input_buffer->depth++;
 
-    if (cannot_access_at_index(input_buffer, 0) || (buffer_at_offset(input_buffer)[0] != '{'))
-    {
+    cJSON* head = nullptr;
+    cJSON* current_item = nullptr;
+
+    if (!can_access_at_index(input_buffer, 0) || (buffer_at_offset(input_buffer)[0] != '{'))
         goto fail;     
-    }
 
     input_buffer->offset++;
     buffer_skip_whitespace(input_buffer);
-    if (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == '}'))
-    {
-        goto success;    
-    }
+    if (can_access_at_index(input_buffer, 0))
+        if (buffer_at_offset(input_buffer)[0] == '}')
+            goto success;    
 
-    if (cannot_access_at_index(input_buffer, 0))
+    if (!can_access_at_index(input_buffer, 0))
     {
         input_buffer->offset--;
         goto fail;
@@ -1303,13 +1125,10 @@ static uint8_t parse_object(cJSON* const item, parse_buffer* const input_buffer)
     do
     {
         cJSON* new_item = cJSON_New_Item();
-        if (new_item == NULL)
-        {
+        if (new_item == nullptr)
             goto fail;    
-        }
 
-        if (head == NULL)
-        {
+        if (head == nullptr) {
             current_item = head = new_item;
         }
         else
@@ -1322,85 +1141,63 @@ static uint8_t parse_object(cJSON* const item, parse_buffer* const input_buffer)
         input_buffer->offset++;
         buffer_skip_whitespace(input_buffer);
         if (!parse_string(current_item, input_buffer))
-        {
             goto fail;      
-        }
+
         buffer_skip_whitespace(input_buffer);
 
         current_item->string = (char*)current_item->value;
-        current_item->value = NULL;
+        current_item->value = nullptr;
 
-        if (cannot_access_at_index(input_buffer, 0) || (buffer_at_offset(input_buffer)[0] != ':'))
-        {
+        if (!can_access_at_index(input_buffer, 0) || (buffer_at_offset(input_buffer)[0] != ':'))
             goto fail;    
-        }
 
         input_buffer->offset++;
         buffer_skip_whitespace(input_buffer);
         if (!parse_value(current_item, input_buffer))
-        {
             goto fail;      
-        }
+
         buffer_skip_whitespace(input_buffer);
     } while (can_access_at_index(input_buffer, 0) && (buffer_at_offset(input_buffer)[0] == ','));
 
-    if (cannot_access_at_index(input_buffer, 0) || (buffer_at_offset(input_buffer)[0] != '}'))
-    {
+    if (!can_access_at_index(input_buffer, 0) || (buffer_at_offset(input_buffer)[0] != '}'))
         goto fail;      
-    }
 
 success:
     input_buffer->depth--;
 
-    if (head != NULL) {
+    if (head != nullptr)
         head->prev = current_item;
-    }
 
     item->type = jobject;
     item->child = head;
 
     input_buffer->offset++;
-    return 1;
+    return true;
 
 fail:
-    if (head != NULL)
-    {
+    if (head != nullptr)
         cJSON_Delete(head);
-    }
 
-    return 0;
+    return false;
 }
 
-static uint8_t print_object(const cJSON* const item, printbuffer* const output_buffer)
+static bool print_object(const cJSON* item, printbuffer* output_buffer)
 {
-    uint8_t* output_pointer = NULL;
-    sizem_t length = 0;
-    sizem_t i;
-    cJSON* current_item = item->child;
-
-    if (output_buffer == NULL)
-    {
-        return 0;
-    }
+    if (output_buffer == nullptr)
+        return false;
 
     if (output_buffer->format)
     {
-        length = (sizem_t)(output_buffer->depth ? output_buffer->depth + 1 : 0) + 2;       
-        output_pointer = ensure(output_buffer, length + 1);
-        if (output_pointer == NULL)
-        {
-            return 0;
-        }
+        int length = (output_buffer->depth ? output_buffer->depth + 1 : 0) + 2;       
+        char* output_pointer = ensure(output_buffer, length + 1);
+        if (output_pointer == nullptr)
+            return false;
 
         if (output_buffer->depth)
-        {
             *output_pointer++ = '\n';
-        }
 
-        for (i = 0; i < output_buffer->depth; i++)
-        {
+        for (int i = 0; i < output_buffer->depth; i++)
             *output_pointer++ = '\t';
-        }
 
         *output_pointer++ = '{';
         *output_pointer++ = '\n';
@@ -1411,12 +1208,10 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
     }
     else
     {
-        length = (sizem_t)1;    
-        output_pointer = ensure(output_buffer, length + 1);
-        if (output_pointer == NULL)
-        {
-            return 0;
-        }
+        int length = 1;    
+        char* output_pointer = ensure(output_buffer, length + 1);
+        if (output_pointer == nullptr)
+            return false;
 
         *output_pointer++ = '{';
 
@@ -1424,102 +1219,83 @@ static uint8_t print_object(const cJSON* const item, printbuffer* const output_b
         output_buffer->offset += length;
     }
 
+    cJSON* current_item = item->child;
     while (current_item)
     {
         if (output_buffer->format)
         {
-            sizem_t i;
-            output_pointer = ensure(output_buffer, output_buffer->depth);
-            if (output_pointer == NULL)
-            {
-                return 0;
-            }
-            for (i = 0; i < output_buffer->depth; i++)
-            {
+            char* output_pointer = ensure(output_buffer, output_buffer->depth);
+            if (output_pointer == nullptr)
+                return false;
+
+            for (int i = 0; i < output_buffer->depth; i++)
                 *output_pointer++ = '\t';
-            }
+
             output_buffer->offset += output_buffer->depth;
         }
 
-        if (!print_string_ptr((uint8_t*)current_item->string, output_buffer))
-        {
-            return 0;
-        }
+        if (!print_string_ptr(current_item->string, output_buffer))
+            return false;
+
         update_offset(output_buffer);
 
-        length = (sizem_t)(output_buffer->format ? 2 : 1);
-        output_pointer = ensure(output_buffer, length);
-        if (output_pointer == NULL)
-        {
-            return 0;
-        }
+        int length = (output_buffer->format ? 2 : 1);
+        char* output_pointer = ensure(output_buffer, length);
+        if (output_pointer == nullptr)
+            return false;
+
         *output_pointer++ = ':';
         if (output_buffer->format)
-        {
             *output_pointer++ = ' ';
-        }
+
         output_buffer->offset += length;
 
         if (!print_value(current_item, output_buffer))
-        {
-            return 0;
-        }
+            return false;
+
         update_offset(output_buffer);
 
-        length = ((sizem_t)(output_buffer->format ? 1 : 0) + (sizem_t)(current_item->next ? 1 : 0));
+        length = ((output_buffer->format ? 1 : 0) + (current_item->next ? 1 : 0));
         output_pointer = ensure(output_buffer, length + 1);
-        if (output_pointer == NULL)
-        {
-            return 0;
-        }
+        if (output_pointer == nullptr)
+            return false;
+
         if (current_item->next)
-        {
             *output_pointer++ = ',';
-        }
 
         if (output_buffer->format)
-        {
             *output_pointer++ = '\n';
-        }
+
         *output_pointer = '\0';
         output_buffer->offset += length;
 
         current_item = current_item->next;
     }
 
-    output_pointer = ensure(output_buffer, output_buffer->format ? (output_buffer->depth + 1) : 2);
-    if (output_pointer == NULL)
-    {
-        return 0;
-    }
+    char* output_pointer = ensure(output_buffer, output_buffer->format ? (output_buffer->depth + 1) : 2);
+    if (output_pointer == nullptr)
+        return false;
+
     if (output_buffer->format)
     {
-        sizem_t i;
-        for (i = 0; i < (output_buffer->depth - 1); i++)
-        {
+        for (int i = 0; i < (output_buffer->depth - 1); i++)
             *output_pointer++ = '\t';
-        }
     }
     *output_pointer++ = '}';
     *output_pointer = '\0';
     output_buffer->depth--;
 
-    return 1;
+    return true;
 }
 
 uint32_t cJSON_GetArraySize(const cJSON* array)
 {
-    cJSON* child = NULL;
-    uint32_t size = 0;
-
-    if (array == NULL)
-    {
+    if (array == nullptr)
         return 0;
-    }
 
-    child = array->child;
-
-    while (child != NULL)
+    uint32_t size = 0;
+    cJSON* child = array->child;
+    while (child != nullptr)
     {
         size++;
         child = child->next;
@@ -1528,17 +1304,13 @@ uint32_t cJSON_GetArraySize(const cJSON* array)
     return (int)size;
 }
 
-static cJSON* get_array_item(const cJSON* array, sizem_t index)
+static cJSON* get_array_item(const cJSON* array, int index)
 {
-    cJSON* current_child = NULL;
+    if (array == nullptr)
+        return nullptr;
 
-    if (array == NULL)
-    {
-        return NULL;
-    }
-
-    current_child = array->child;
-    while ((current_child != NULL) && (index > 0))
+    cJSON* current_child = array->child;
+    while ((current_child != nullptr) && (index > 0))
     {
         index--;
         current_child = current_child->next;
@@ -1550,38 +1322,29 @@ static cJSON* get_array_item(const cJSON* array, sizem_t index)
 cJSON* cJSON_GetArrayItem(const cJSON* array, int index)
 {
     if (index < 0)
-    {
-        return NULL;
-    }
+        return nullptr;
 
-    return get_array_item(array, (sizem_t)index);
+    return get_array_item(array, index);
 }
 
-static cJSON* cJSON_GetObjectItem(const cJSON* const object, const char* const name)
+static cJSON* cJSON_GetObjectItem(const cJSON* object, const char* name)
 {
-    cJSON* current_element = NULL;
+    if ((object == nullptr) || (name == nullptr))
+        return nullptr;
 
-    if ((object == NULL) || (name == NULL))
-    {
-        return NULL;
-    }
-
-    current_element = object->child;
-    while ((current_element != NULL) && (current_element->string != NULL) && strcmp(name, current_element->string) != 0)
-    {
+    cJSON* current_element = object->child;
+    while ((current_element != nullptr) && (current_element->string != nullptr) && strcmp(name, current_element->string) != 0)
         current_element = current_element->next;
-    }
 
-    if ((current_element == NULL) || (current_element->string == NULL)) {
-        return NULL;
-    }
+    if ((current_element == nullptr) || (current_element->string == nullptr))
+        return nullptr;
 
     return current_element;
 }
 
-uint8_t cJSON_HasObjectItem(const cJSON* object, const char* string)
+bool cJSON_HasObjectItem(const cJSON* object, const char* string)
 {
-    return cJSON_GetObjectItem(object, string) ? 1 : 0;
+    return cJSON_GetObjectItem(object, string) ? true : false;
 }
 
 static void suffix_object(cJSON* prev, cJSON* item)
@@ -1590,21 +1353,17 @@ static void suffix_object(cJSON* prev, cJSON* item)
     item->prev = prev;
 }
 
-static uint8_t add_item_to_array(cJSON* array, cJSON* item)
+static bool add_item_to_array(cJSON* array, cJSON* item)
 {
-    cJSON* child = NULL;
+    if ((item == nullptr) || (array == nullptr) || (array == item))
+        return false;
 
-    if ((item == NULL) || (array == NULL) || (array == item))
-    {
-        return 0;
-    }
-
-    child = array->child;
-    if (child == NULL)
+    cJSON* child = array->child;
+    if (child == nullptr)
     {
         array->child = item;
         item->prev = item;
-        item->next = NULL;
+        item->next = nullptr;
     }
     else
     {
@@ -1616,49 +1375,40 @@ static uint8_t add_item_to_array(cJSON* array, cJSON* item)
         else
         {
             while (child->next)
-            {
                 child = child->next;
-            }
+
             suffix_object(child, item);
             array->child->prev = item;
         }
     }
 
-    return 1;
+    return true;
 }
 
-uint8_t cJSON_AddItemToArray(cJSON* array, cJSON* item)
+int cJSON_AddItemToArray(cJSON* array, cJSON* item)
 {
     return add_item_to_array(array, item);
 }
 
-static uint8_t add_item_to_object(cJSON* const object, const char* string, cJSON* const item)
+static bool add_item_to_object(cJSON* object, const char* string, cJSON* item)
 {
-    if ((object == NULL) || (string == NULL) || (item == NULL) || (object == item))
-    {
-        return 0;
-    }
+    if ((object == nullptr) || (string == nullptr) || (item == nullptr) || (object == item))
+        return false;
 
     char* new_key = cJSON_strdup(string);
-    if (new_key == NULL)
-    {
-        return 0;
-    }
+    if (new_key == nullptr)
+        return false;
 
-    jType new_type = item->type;
-
-    if (item->string != NULL)
-    {
+    if (item->string != nullptr)
         free(item->string);
-    }
 
     item->string = new_key;
-    item->type = new_type;
+    item->type = item->type;
 
     return add_item_to_array(object, item);
 }
 
-uint8_t cJSON_AddItemToObject(cJSON* object, const char* string, cJSON* item)
+int cJSON_AddItemToObject(cJSON* object, const char* string, cJSON* item)
 {
     return add_item_to_object(object, string, item);
 }
@@ -1667,21 +1417,15 @@ cJSON* cJSON_CreateNull(void)
 {
     cJSON* item = cJSON_New_Item();
     if (item)
-    {
         item->type = jnull;
-    }
-
     return item;
 }
 
-cJSON* cJSON_CreateBool(uint8_t boolean)
+cJSON* cJSON_CreateBool(bool boolean)
 {
     cJSON* item = cJSON_New_Item();
     if (item)
-    {
         item->type = boolean ? jtrue : jfalse;
-    }
-
     return item;
 }
 
@@ -1694,7 +1438,6 @@ cJSON* cJSON_CreateNumber(void* num, jnType type)
         item->typen = type;
         item->value = num;
     }
-
     return item;
 }
 
@@ -1708,27 +1451,9 @@ cJSON* cJSON_CreateString(const char* string)
         if (!item->value)
         {
             cJSON_Delete(item);
-            return NULL;
+            return nullptr;
         }
     }
-
-    return item;
-}
-
-cJSON* cJSON_CreateRaw(const char* raw)
-{
-    cJSON* item = cJSON_New_Item();
-    if (item)
-    {
-        item->type = jraw;
-        item->value = cJSON_strdup(raw);
-        if (!item->value)
-        {
-            cJSON_Delete(item);
-            return NULL;
-        }
-    }
-
     return item;
 }
 
@@ -1736,10 +1461,7 @@ cJSON* cJSON_CreateArray()
 {
     cJSON* item = cJSON_New_Item();
     if (item)
-    {
         item->type = jarray;
-    }
-
     return item;
 }
 
@@ -1747,10 +1469,7 @@ cJSON* cJSON_CreateObject()
 {
     cJSON* item = cJSON_New_Item();
     if (item)
-    {
         item->type = jobject;
-    }
-
     return item;
 }
 
