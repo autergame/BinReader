@@ -1,6 +1,8 @@
 # BinReader
 League Of Legends Bin Reader And Writter
 
+# MOVED TO: https://github.com/autergame/BinReader-Rust
+
 ## Help From:
 * https://github.com/moonshadow565/ritobin
 * https://github.com/LoL-Fantome/LeagueToolkit
